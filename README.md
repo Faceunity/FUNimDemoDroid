@@ -28,6 +28,9 @@ faceU.destroy()，一般在Activity的onDestory中调用
 faceU.effect()， 支持I420和NV21两种帧图像格式
 ## 显示和隐藏UI布局切换
 faceU.showOrHideLayout()，默认显示
+# 更新SDK
+[Nama SDK发布地址](https://github.com/Faceunity/FULiveDemoDroid/releases),可查看Nama的所有版本和发布说明。
+更新方法为下载Faceunity*.zip解压后替换faceunity模块中的相应文件。
 # 定制需求
 ## 定制界面
 修改com.faceunity.ui中的代码或者自己编写

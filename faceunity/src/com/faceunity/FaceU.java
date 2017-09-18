@@ -74,6 +74,8 @@ public class FaceU {
 //    private int oldWidth = 0;
 //    private int oldHeight = 0;
 
+    private int rotation;
+
     /// 异步请求响应
     public interface Response<T> {
         void onResult(T t);
@@ -216,7 +218,7 @@ public class FaceU {
      * ******************************** 道具/美颜效果(视频帧添加效果） ********************************
      */
 
-    public boolean effect(final byte[] img, final int w, final int h, final VIDEO_FRAME_FORMAT format) {
+    public boolean effect(final byte[] img, final int w, final int h, final VIDEO_FRAME_FORMAT format, final int rotation) {
         final CountDownLatch barrier = new CountDownLatch(1);
         final boolean didPost = maybePostOnEffectThread(new Runnable() {
             @Override
@@ -233,6 +235,10 @@ public class FaceU {
 //                    doReleaseFaceUNative();
 //                    initFaceU();
 //                }
+                if (FaceU.this.rotation != rotation) {
+                    FaceU.this.rotation = rotation;
+                    setEffectRotation();
+                }
                 faceTracking();
                 fuItemSetParam();
                 loadEffect();
@@ -296,6 +302,7 @@ public class FaceU {
                 int tmp = itemsArray[1];
                 itemsArray[1] = mEffectItem = faceunity.fuCreateItemFromPackage(itemData);
                 faceunity.fuItemSetParam(mEffectItem, "isAndroid", 1.0);
+                setEffectRotation();
                 if (tmp != 0) {
                     faceunity.fuDestroyItem(tmp);
                 }
@@ -303,6 +310,14 @@ public class FaceU {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 根据图片（img数组）朝向设置道具朝向
+     */
+    private void setEffectRotation() {
+        faceunity.fuItemSetParam(mEffectItem, "default_rotation_mode", (rotation == 270) ? 1 : 3);
+        faceunity.fuItemSetParam(mEffectItem, "rotationAngle", (rotation == 270) ? 90 : 270);
     }
 
     private boolean maybePostOnEffectThread(Runnable runnable) {

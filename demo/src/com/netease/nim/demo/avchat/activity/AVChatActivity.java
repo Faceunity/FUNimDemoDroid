@@ -642,7 +642,7 @@ public class AVChatActivity extends UI implements AVChatUI.AVChatListener, AVCha
     @Override
     public boolean onVideoFrameFilter(AVChatVideoFrame frame, boolean maybeDualInput) {
         if (faceU != null) {
-            faceU.effect(frame.data, frame.width, frame.height, FaceU.VIDEO_FRAME_FORMAT.I420);
+            faceU.effect(frame.data, frame.width, frame.height, FaceU.VIDEO_FRAME_FORMAT.I420, frame.rotation);
         }
 
         return true;
