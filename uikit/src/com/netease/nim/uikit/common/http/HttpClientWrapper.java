@@ -1,5 +1,6 @@
 package com.netease.nim.uikit.common.http;
 
+import com.alibaba.fastjson.JSONObject;
 import com.netease.nim.uikit.common.util.log.LogUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -19,7 +20,7 @@ public class HttpClientWrapper {
 
     private static final String TAG = "http";
 
-    private static final int TIMEOUT = 30 * 1000;
+    private static final Integer TIMEOUT = 30 * 1000; // 允许反射修此常量，如果是基本类型，那么编译时会被优化直接替换，运行时无法在修改。
     private static final int BUFFER_SIZE = 1024;
     private static final int RES_CODE_SUCCESS = 200;
     private static final String CHARSET = "UTF-8";
@@ -36,6 +37,19 @@ public class HttpClientWrapper {
             e = null;
             obj = null;
         }
+    }
+
+    public static String buildRequestParams(Map<String, Object> params) {
+        if (params == null) {
+            return null;
+        }
+
+        StringBuilder result = new StringBuilder();
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            result.append("&").append(entry.getKey()).append("=").append(entry.getValue());
+        }
+
+        return result.toString();
     }
 
     public static HttpResult<String> get(final String urlStr, final Map<String, String> headers) {
@@ -129,6 +143,9 @@ public class HttpClientWrapper {
         // headers
         buildHeaders(urlConnection, headers);
 
+        // json body
+        buildJsonHeaders(urlConnection, body);
+
         // body
         OutputStream os = urlConnection.getOutputStream();
         DataOutputStream out = new DataOutputStream(os);
@@ -138,6 +155,10 @@ public class HttpClientWrapper {
                 out.write(((String) body).getBytes(CHARSET));
             } else if (body instanceof byte[]) {
                 out.write((byte[]) body);
+            } else if (body instanceof JSONObject) {
+                out.write(((JSONObject) body).toJSONString().getBytes(CHARSET));
+            } else if (body instanceof org.json.JSONObject) {
+                out.write(body.toString().getBytes(CHARSET));
             }
             os.flush(); // 开始与对方建立三次握手。
         } catch (IOException e) {
@@ -169,6 +190,12 @@ public class HttpClientWrapper {
             for (String key : headers.keySet()) {
                 urlConnection.setRequestProperty(key, headers.get(key));
             }
+        }
+    }
+
+    private static <T> void buildJsonHeaders(HttpURLConnection urlConnection, T body) {
+        if (body instanceof JSONObject || body instanceof org.json.JSONObject) {
+            urlConnection.setRequestProperty("Content-Type", "application/json");
         }
     }
 

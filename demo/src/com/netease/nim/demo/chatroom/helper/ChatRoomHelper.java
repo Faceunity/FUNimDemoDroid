@@ -4,6 +4,7 @@ import android.content.Context;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.netease.nim.demo.DemoCache;
 import com.netease.nim.demo.R;
 
@@ -22,16 +23,6 @@ public class ChatRoomHelper {
 
     private static Map<String, Integer> roomCoverMap = new HashMap<>();
     private static int index = 0;
-
-    public static void init() {
-        ChatRoomMemberCache.getInstance().clear();
-        ChatRoomMemberCache.getInstance().registerObservers(true);
-    }
-
-    public static void logout() {
-        ChatRoomMemberCache.getInstance().registerObservers(false);
-        ChatRoomMemberCache.getInstance().clear();
-    }
 
     public static void setCoverImage(String roomId, ImageView coverImage, boolean blur) {
         if (roomCoverMap.containsKey(roomId)) {
@@ -53,7 +44,7 @@ public class ChatRoomHelper {
             Glide.with(context).load(resId).into(imageView);
         } else {
             Glide.with(context).load(resId)
-                    .bitmapTransform(new BlurTransformation(context, 5))
+                    .apply(new RequestOptions().bitmapTransform(new BlurTransformation(5)))
                     .into(imageView);
         }
     }

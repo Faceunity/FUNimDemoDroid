@@ -12,11 +12,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.netease.nim.avchatkit.AVChatProfile;
+import com.netease.nim.avchatkit.activity.AVChatActivity;
+import com.netease.nim.avchatkit.constant.AVChatExtras;
 import com.netease.nim.demo.R;
-import com.netease.nim.demo.avchat.AVChatProfile;
-import com.netease.nim.demo.avchat.activity.AVChatActivity;
-import com.netease.nim.demo.chatroom.helper.ChatRoomHelper;
-import com.netease.nim.demo.config.preference.UserPreferences;
+import com.netease.nim.demo.config.preference.Preferences;
 import com.netease.nim.demo.contact.activity.AddFriendActivity;
 import com.netease.nim.demo.login.LoginActivity;
 import com.netease.nim.demo.login.LogoutHelper;
@@ -24,22 +24,20 @@ import com.netease.nim.demo.main.fragment.HomeFragment;
 import com.netease.nim.demo.session.SessionHelper;
 import com.netease.nim.demo.team.TeamCreateHelper;
 import com.netease.nim.demo.team.activity.AdvancedTeamSearchActivity;
-import com.netease.nim.uikit.LoginSyncDataStatusObserver;
-import com.netease.nim.uikit.NimUIKit;
+import com.netease.nim.uikit.api.NimUIKit;
+import com.netease.nim.uikit.api.model.main.LoginSyncDataStatusObserver;
+import com.netease.nim.uikit.business.contact.selector.activity.ContactSelectActivity;
+import com.netease.nim.uikit.business.team.helper.TeamHelper;
 import com.netease.nim.uikit.common.activity.UI;
 import com.netease.nim.uikit.common.ui.dialog.DialogMaker;
 import com.netease.nim.uikit.common.util.log.LogUtil;
-import com.netease.nim.uikit.contact_selector.activity.ContactSelectActivity;
-import com.netease.nim.uikit.permission.MPermission;
-import com.netease.nim.uikit.permission.annotation.OnMPermissionDenied;
-import com.netease.nim.uikit.permission.annotation.OnMPermissionGranted;
-import com.netease.nim.uikit.permission.annotation.OnMPermissionNeverAskAgain;
-import com.netease.nim.uikit.team.helper.TeamHelper;
+import com.netease.nim.uikit.support.permission.MPermission;
+import com.netease.nim.uikit.support.permission.annotation.OnMPermissionDenied;
+import com.netease.nim.uikit.support.permission.annotation.OnMPermissionGranted;
+import com.netease.nim.uikit.support.permission.annotation.OnMPermissionNeverAskAgain;
 import com.netease.nimlib.sdk.NIMClient;
 import com.netease.nimlib.sdk.NimIntent;
 import com.netease.nimlib.sdk.Observer;
-import com.netease.nimlib.sdk.StatusBarNotificationConfig;
-import com.netease.nimlib.sdk.mixpush.MixPushService;
 import com.netease.nimlib.sdk.msg.model.IMMessage;
 
 import java.util.ArrayList;
@@ -55,7 +53,7 @@ public class MainActivity extends UI {
     private static final int REQUEST_CODE_NORMAL = 1;
     private static final int REQUEST_CODE_ADVANCED = 2;
     private static final String TAG = MainActivity.class.getSimpleName();
-    private final int BASIC_PERMISSION_REQUEST_CODE = 100;
+    private static final int BASIC_PERMISSION_REQUEST_CODE = 100;
 
     private HomeFragment mainFragment;
 
@@ -97,9 +95,6 @@ public class MainActivity extends UI {
         boolean syncCompleted = LoginSyncDataStatusObserver.getInstance().observeSyncDataCompletedEvent(new Observer<Void>() {
             @Override
             public void onEvent(Void v) {
-
-                syncPushNoDisturb(UserPreferences.getStatusConfig());
-
                 DialogMaker.dismissProgressDialog();
             }
         });
@@ -107,29 +102,9 @@ public class MainActivity extends UI {
         LogUtil.i(TAG, "sync completed = " + syncCompleted);
         if (!syncCompleted) {
             DialogMaker.showProgressDialog(MainActivity.this, getString(R.string.prepare_data)).setCanceledOnTouchOutside(false);
-        } else {
-            syncPushNoDisturb(UserPreferences.getStatusConfig());
         }
 
         onInit();
-    }
-
-    /**
-     * 若增加第三方推送免打扰（V3.2.0新增功能），则：
-     * 1.添加下面逻辑使得 push 免打扰与先前的设置同步。
-     * 2.设置界面{@link com.netease.nim.demo.main.activity.SettingsActivity} 以及
-     * 免打扰设置界面{@link com.netease.nim.demo.main.activity.NoDisturbActivity} 也应添加 push 免打扰的逻辑
-     * <p>
-     * 注意：isPushDndValid 返回 false， 表示未设置过push 免打扰。
-     */
-    private void syncPushNoDisturb(StatusBarNotificationConfig staConfig) {
-
-        boolean isNoDisbConfigExist = NIMClient.getService(MixPushService.class).isPushNoDisturbConfigExist();
-
-        if (!isNoDisbConfigExist && staConfig.downTimeToggle) {
-            NIMClient.getService(MixPushService.class).setPushNoDisturbConfig(staConfig.downTimeToggle,
-                    staConfig.downTimeBegin, staConfig.downTimeEnd);
-        }
     }
 
     /**
@@ -160,23 +135,30 @@ public class MainActivity extends UI {
 
     @OnMPermissionGranted(BASIC_PERMISSION_REQUEST_CODE)
     public void onBasicPermissionSuccess() {
-        Toast.makeText(this, "授权成功", Toast.LENGTH_SHORT).show();
+        try {
+            Toast.makeText(this, "授权成功", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         MPermission.printMPermissionResult(false, this, BASIC_PERMISSIONS);
     }
 
     @OnMPermissionDenied(BASIC_PERMISSION_REQUEST_CODE)
     @OnMPermissionNeverAskAgain(BASIC_PERMISSION_REQUEST_CODE)
     public void onBasicPermissionFailed() {
-        Toast.makeText(this, "未全部授权，部分功能可能无法正常运行！", Toast.LENGTH_SHORT).show();
+        try {
+            Toast.makeText(this, "未全部授权，部分功能可能无法正常运行！", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         MPermission.printMPermissionResult(false, this, BASIC_PERMISSIONS);
     }
 
     private void onInit() {
         // 加载主页面
         showMainFragment();
-
-        // 聊天室初始化
-        ChatRoomHelper.init();
 
         LogUtil.ui("NIM SDK cache path=" + NIMClient.getSdkStorageDirPath());
     }
@@ -202,6 +184,7 @@ public class MainActivity extends UI {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
         outState.clear();
     }
 
@@ -221,11 +204,11 @@ public class MainActivity extends UI {
                 break;
             case R.id.create_normal_team:
                 ContactSelectActivity.Option option = TeamHelper.getCreateContactSelectOption(null, 50);
-                NimUIKit.startContactSelect(MainActivity.this, option, REQUEST_CODE_NORMAL);
+                NimUIKit.startContactSelector(MainActivity.this, option, REQUEST_CODE_NORMAL);
                 break;
             case R.id.create_regular_team:
                 ContactSelectActivity.Option advancedOption = TeamHelper.getCreateContactSelectOption(null, 50);
-                NimUIKit.startContactSelect(MainActivity.this, advancedOption, REQUEST_CODE_ADVANCED);
+                NimUIKit.startContactSelector(MainActivity.this, advancedOption, REQUEST_CODE_ADVANCED);
                 break;
             case R.id.search_advanced_team:
                 AdvancedTeamSearchActivity.start(MainActivity.this);
@@ -265,9 +248,8 @@ public class MainActivity extends UI {
                 localIntent.setClass(this, AVChatActivity.class);
                 startActivity(localIntent);
             }
-        } else if (intent.hasExtra(com.netease.nim.demo.main.model.Extras.EXTRA_JUMP_P2P)) {
-            Intent data = intent.getParcelableExtra(com.netease.nim.demo.main.model.Extras.EXTRA_DATA);
-            String account = data.getStringExtra(com.netease.nim.demo.main.model.Extras.EXTRA_ACCOUNT);
+        } else if (intent.hasExtra(AVChatExtras.EXTRA_FROM_NOTIFICATION)) {
+            String account = intent.getStringExtra(AVChatExtras.EXTRA_ACCOUNT);
             if (!TextUtils.isEmpty(account)) {
                 SessionHelper.startP2PSession(this, account);
             }
@@ -302,6 +284,7 @@ public class MainActivity extends UI {
 
     // 注销
     private void onLogout() {
+        Preferences.saveUserToken("");
         // 清理缓存&注销监听
         LogoutHelper.logout();
 

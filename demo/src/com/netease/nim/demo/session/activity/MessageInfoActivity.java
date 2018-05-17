@@ -12,18 +12,20 @@ import com.netease.nim.demo.DemoCache;
 import com.netease.nim.demo.R;
 import com.netease.nim.demo.contact.activity.UserProfileActivity;
 import com.netease.nim.demo.team.TeamCreateHelper;
-import com.netease.nim.uikit.NimUIKit;
-import com.netease.nim.uikit.cache.NimUserInfoCache;
+import com.netease.nim.uikit.business.contact.selector.activity.ContactSelectActivity;
+import com.netease.nim.uikit.business.team.helper.TeamHelper;
+import com.netease.nim.uikit.business.uinfo.UserInfoHelper;
+import com.netease.nim.uikit.common.activity.ToolBarOptions;
 import com.netease.nim.uikit.common.activity.UI;
 import com.netease.nim.uikit.common.ui.imageview.HeadImageView;
 import com.netease.nim.uikit.common.ui.widget.SwitchButton;
 import com.netease.nim.uikit.common.util.sys.NetworkUtil;
-import com.netease.nim.uikit.contact_selector.activity.ContactSelectActivity;
-import com.netease.nim.uikit.model.ToolBarOptions;
-import com.netease.nim.uikit.team.helper.TeamHelper;
+import com.netease.nim.uikit.api.NimUIKit;
+import com.netease.nim.uikit.api.wrapper.NimToolBarOptions;
 import com.netease.nimlib.sdk.NIMClient;
 import com.netease.nimlib.sdk.RequestCallback;
 import com.netease.nimlib.sdk.friend.FriendService;
+import com.netease.nimlib.sdk.team.model.CreateTeamResult;
 
 import java.util.ArrayList;
 
@@ -50,7 +52,7 @@ public class MessageInfoActivity extends UI {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.message_info_activity);
 
-        ToolBarOptions options = new ToolBarOptions();
+        ToolBarOptions options = new NimToolBarOptions();
         options.titleId = R.string.message_info;
         options.navigateId = R.drawable.actionbar_dark_back_icon;
         setToolBar(R.id.toolbar, options);
@@ -69,7 +71,7 @@ public class MessageInfoActivity extends UI {
         HeadImageView userHead = (HeadImageView) findViewById(R.id.user_layout).findViewById(R.id.imageViewHeader);
         TextView userName = (TextView) findViewById(R.id.user_layout).findViewById(R.id.textViewName);
         userHead.loadBuddyAvatar(account);
-        userName.setText(NimUserInfoCache.getInstance().getUserDisplayName(account));
+        userName.setText(UserInfoHelper.getUserDisplayName(account));
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -77,7 +79,7 @@ public class MessageInfoActivity extends UI {
             }
         });
 
-        ((TextView)findViewById(R.id.create_team_layout).findViewById(R.id.textViewName)).setText(R.string.create_normal_team);
+        ((TextView) findViewById(R.id.create_team_layout).findViewById(R.id.textViewName)).setText(R.string.create_normal_team);
         HeadImageView addImage = (HeadImageView) findViewById(R.id.create_team_layout).findViewById(R.id.imageViewHeader);
         addImage.setBackgroundResource(com.netease.nim.uikit.R.drawable.nim_team_member_add_selector);
         addImage.setOnClickListener(new View.OnClickListener() {
@@ -87,7 +89,7 @@ public class MessageInfoActivity extends UI {
             }
         });
 
-        ((TextView)findViewById(R.id.toggle_layout).findViewById(R.id.user_profile_title)).setText(R.string.msg_notice);
+        ((TextView) findViewById(R.id.toggle_layout).findViewById(R.id.user_profile_title)).setText(R.string.msg_notice);
         switchButton = (SwitchButton) findViewById(R.id.toggle_layout).findViewById(R.id.user_profile_toggle);
         switchButton.setOnChangedListener(onChangedListener);
     }
@@ -145,7 +147,7 @@ public class MessageInfoActivity extends UI {
         ArrayList<String> memberAccounts = new ArrayList<>();
         memberAccounts.add(account);
         ContactSelectActivity.Option option = TeamHelper.getCreateContactSelectOption(memberAccounts, 50);
-        NimUIKit.startContactSelect(this, option, REQUEST_CODE_NORMAL);// 创建群
+        NimUIKit.startContactSelector(this, option, REQUEST_CODE_NORMAL);// 创建群
     }
 
     @Override
@@ -155,9 +157,9 @@ public class MessageInfoActivity extends UI {
             if (requestCode == REQUEST_CODE_NORMAL) {
                 final ArrayList<String> selected = data.getStringArrayListExtra(ContactSelectActivity.RESULT_DATA);
                 if (selected != null && !selected.isEmpty()) {
-                    TeamCreateHelper.createNormalTeam(MessageInfoActivity.this, selected, true, new RequestCallback<Void>() {
+                    TeamCreateHelper.createNormalTeam(MessageInfoActivity.this, selected, true, new RequestCallback<CreateTeamResult>() {
                         @Override
-                        public void onSuccess(Void param) {
+                        public void onSuccess(CreateTeamResult param) {
                             finish();
                         }
 

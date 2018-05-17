@@ -10,29 +10,32 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.netease.nim.avchatkit.AVChatKit;
 import com.netease.nim.demo.DemoCache;
 import com.netease.nim.demo.R;
-import com.netease.nim.demo.avchat.activity.AVChatSettingsActivity;
-import com.netease.nim.demo.config.preference.Preferences;
 import com.netease.nim.demo.config.preference.UserPreferences;
 import com.netease.nim.demo.contact.activity.UserProfileSettingActivity;
-import com.netease.nim.demo.redpacket.NIMRedPacketClient;
 import com.netease.nim.demo.jsbridge.JsBridgeActivity;
 import com.netease.nim.demo.main.adapter.SettingsAdapter;
 import com.netease.nim.demo.main.model.SettingTemplate;
 import com.netease.nim.demo.main.model.SettingType;
+import com.netease.nim.demo.redpacket.NIMRedPacketClient;
+import com.netease.nim.uikit.api.NimUIKit;
+import com.netease.nim.uikit.api.wrapper.NimToolBarOptions;
+import com.netease.nim.uikit.common.activity.ToolBarOptions;
 import com.netease.nim.uikit.common.activity.UI;
-import com.netease.nim.uikit.model.ToolBarOptions;
-import com.netease.nim.uikit.session.audio.MessageAudioControl;
 import com.netease.nimlib.sdk.NIMClient;
 import com.netease.nimlib.sdk.Observer;
 import com.netease.nimlib.sdk.RequestCallback;
+import com.netease.nimlib.sdk.RequestCallbackWrapper;
 import com.netease.nimlib.sdk.ResponseCode;
 import com.netease.nimlib.sdk.StatusBarNotificationConfig;
 import com.netease.nimlib.sdk.auth.AuthService;
 import com.netease.nimlib.sdk.avchat.AVChatNetDetectCallback;
 import com.netease.nimlib.sdk.avchat.AVChatNetDetector;
 import com.netease.nimlib.sdk.lucene.LuceneService;
+import com.netease.nimlib.sdk.misc.DirCacheFileType;
+import com.netease.nimlib.sdk.misc.MiscService;
 import com.netease.nimlib.sdk.mixpush.MixPushService;
 import com.netease.nimlib.sdk.msg.MsgService;
 import com.netease.nimlib.sdk.settings.SettingsService;
@@ -67,20 +70,26 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
     private static final int TAG_NOTIFICATION_STYLE = 21; // 通知栏展开、折叠
 
     private static final int TAG_JRMFWAllET = 22; // 我的钱包
+
+    private static final int TAG_CLEAR_SDK_CACHE = 23; // 清除 sdk 文件缓存
+
+    private static final int TAG_PUSH_SHOW_NO_DETAIL = 24; // 推送消息不展示详情
     ListView listView;
     SettingsAdapter adapter;
     private List<SettingTemplate> items = new ArrayList<SettingTemplate>();
     private String noDisturbTime;
     private SettingTemplate disturbItem;
     private SettingTemplate clearIndexItem;
+    private SettingTemplate clearSDKDirCacheItem;
     private SettingTemplate notificationItem;
+    private SettingTemplate pushShowNoDetailItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
 
-        ToolBarOptions options = new ToolBarOptions();
+        ToolBarOptions options = new NimToolBarOptions();
         options.titleId = R.string.settings;
         setToolBar(R.id.toolbar, options);
 
@@ -93,14 +102,7 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
     @Override
     protected void onResume() {
         super.onResume();
-        // android2.3以下版本 布局混乱的问题
-        if (Build.VERSION.SDK_INT <= 10) {
-            adapter = null;
-            initAdapter();
-            adapter.notifyDataSetChanged();
-        } else {
-            adapter.notifyDataSetChanged();
-        }
+        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -127,6 +129,7 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
             noDisturbTime = String.format("%s到%s", UserPreferences.getStatusConfig().downTimeBegin,
                     UserPreferences.getStatusConfig().downTimeEnd);
         }
+        getSDKDirCacheSize();
     }
 
     private void initUI() {
@@ -165,6 +168,8 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
                 UserPreferences.getNotificationToggle());
         items.add(notificationItem);
         items.add(SettingTemplate.addLine());
+        pushShowNoDetailItem = new SettingTemplate(TAG_PUSH_SHOW_NO_DETAIL, getString(R.string.push_no_detail), SettingType.TYPE_TOGGLE, getIsShowPushNoDetail());
+        items.add(pushShowNoDetailItem);
         items.add(new SettingTemplate(TAG_RING, getString(R.string.ring), SettingType.TYPE_TOGGLE,
                 UserPreferences.getRingToggle()));
         items.add(new SettingTemplate(TAG_LED, getString(R.string.led), SettingType.TYPE_TOGGLE,
@@ -184,7 +189,7 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
         items.add(SettingTemplate.makeSeperator());
 
         items.add(new SettingTemplate(TAG_SPEAKER, getString(R.string.msg_speaker), SettingType.TYPE_TOGGLE,
-                com.netease.nim.uikit.UserPreferences.isEarPhoneModeEnable()));
+                NimUIKit.isEarPhoneModeEnable()));
 
         items.add(SettingTemplate.makeSeperator());
 
@@ -204,6 +209,9 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
         items.add(SettingTemplate.addLine());
         clearIndexItem = new SettingTemplate(TAG_CLEAR_INDEX, getString(R.string.clear_index), getIndexCacheSize() + " M");
         items.add(clearIndexItem);
+        items.add(SettingTemplate.addLine());
+        clearSDKDirCacheItem = new SettingTemplate(TAG_CLEAR_SDK_CACHE, getString(R.string.clear_sdk_cache), 0 + " M");
+        items.add(clearSDKDirCacheItem);
 
         items.add(SettingTemplate.makeSeperator());
 
@@ -244,8 +252,11 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
             case TAG_CLEAR_INDEX:
                 clearIndex();
                 break;
+            case TAG_CLEAR_SDK_CACHE:
+                clearSDKDirCache();
+                break;
             case TAG_NRTC_SETTINGS:
-                startActivity(new Intent(SettingsActivity.this, AVChatSettingsActivity.class));
+                AVChatKit.startAVChatSettings(SettingsActivity.this);
                 break;
             case TAG_NRTC_NET_DETECT:
                 netDetectForNrtc();
@@ -259,6 +270,39 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
             default:
                 break;
         }
+    }
+
+    private void getSDKDirCacheSize() {
+        List<DirCacheFileType> types = new ArrayList<>();
+        types.add(DirCacheFileType.AUDIO);
+        types.add(DirCacheFileType.THUMB);
+        types.add(DirCacheFileType.IMAGE);
+        types.add(DirCacheFileType.VIDEO);
+        types.add(DirCacheFileType.OTHER);
+        NIMClient.getService(MiscService.class).getSizeOfDirCache(types, 0, 0).setCallback(new RequestCallbackWrapper<Long>() {
+            @Override
+            public void onResult(int code, Long result, Throwable exception) {
+                clearSDKDirCacheItem.setDetail(String.format("%.2f M", result / (1024.0f * 1024.0f)));
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void clearSDKDirCache() {
+        List<DirCacheFileType> types = new ArrayList<>();
+        types.add(DirCacheFileType.AUDIO);
+        types.add(DirCacheFileType.THUMB);
+        types.add(DirCacheFileType.IMAGE);
+        types.add(DirCacheFileType.VIDEO);
+        types.add(DirCacheFileType.OTHER);
+
+        NIMClient.getService(MiscService.class).clearDirCache(types, 0, 0).setCallback(new RequestCallbackWrapper<Void>() {
+            @Override
+            public void onResult(int code, Void result, Throwable exception) {
+                clearSDKDirCacheItem.setDetail("0.00 M");
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     private void netDetectForNrtc() {
@@ -280,22 +324,46 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
         });
     }
 
+
+    private boolean getIsShowPushNoDetail() {
+        StatusBarNotificationConfig localConfig = UserPreferences.getStatusConfig();
+
+        // 可能出现服务器和本地不一致，纠正
+        boolean remoteShowNoDetail = NIMClient.getService(MixPushService.class).isPushShowNoDetail();
+        if (localConfig.hideContent ^ remoteShowNoDetail) {
+            updateShowPushNoDetail(localConfig.hideContent);
+        }
+
+        return localConfig.hideContent;
+    }
+
+    private void updateShowPushNoDetail(final boolean showNoDetail) {
+        NIMClient.getService(MixPushService.class).setPushShowNoDetail(showNoDetail).setCallback(new RequestCallbackWrapper<Void>() {
+            @Override
+            public void onResult(int code, Void result, Throwable exception) {
+                if (code == ResponseCode.RES_SUCCESS) {
+                    StatusBarNotificationConfig config = UserPreferences.getStatusConfig();
+                    config.hideContent = showNoDetail;
+                    UserPreferences.setStatusConfig(config);
+                    NIMClient.updateStatusBarNotificationConfig(config);
+                    Toast.makeText(SettingsActivity.this, "设置成功", Toast.LENGTH_SHORT).show();
+                } else {
+                    pushShowNoDetailItem.setChecked(!showNoDetail);
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(SettingsActivity.this, "设置失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
     /**
      * 注销
      */
     private void logout() {
-        removeLoginState();
         MainActivity.logout(SettingsActivity.this, false);
 
         finish();
         NIMClient.getService(AuthService.class).logout();
-    }
-
-    /**
-     * 清除登陆状态
-     */
-    private void removeLoginState() {
-        Preferences.saveUserToken("");
     }
 
     @Override
@@ -305,8 +373,7 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
                 setMessageNotify(checkState);
                 break;
             case TAG_SPEAKER:
-                com.netease.nim.uikit.UserPreferences.setEarPhoneModeEnable(checkState);
-                MessageAudioControl.getInstance(SettingsActivity.this).setEarPhoneModeEnable(checkState);
+                NimUIKit.setEarPhoneModeEnable(checkState);
                 break;
             case TAG_MSG_IGNORE:
                 UserPreferences.setMsgIgnore(checkState);
@@ -350,6 +417,10 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
                 config.notificationFolded = checkState;
                 UserPreferences.setStatusConfig(config);
                 NIMClient.updateStatusBarNotificationConfig(config);
+                break;
+            case TAG_PUSH_SHOW_NO_DETAIL:
+                updateShowPushNoDetail(checkState);
+                break;
             default:
                 break;
         }

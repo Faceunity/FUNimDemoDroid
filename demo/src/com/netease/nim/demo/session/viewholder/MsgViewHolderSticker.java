@@ -4,12 +4,13 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.netease.nim.demo.R;
 import com.netease.nim.demo.session.extension.StickerAttachment;
+import com.netease.nim.uikit.business.session.emoji.StickerManager;
+import com.netease.nim.uikit.business.session.viewholder.MsgViewHolderBase;
+import com.netease.nim.uikit.business.session.viewholder.MsgViewHolderThumbBase;
 import com.netease.nim.uikit.common.ui.recyclerview.adapter.BaseMultiItemFetchLoadAdapter;
-import com.netease.nim.uikit.session.emoji.StickerManager;
-import com.netease.nim.uikit.session.viewholder.MsgViewHolderBase;
-import com.netease.nim.uikit.session.viewholder.MsgViewHolderThumbBase;
 
 /**
  * Created by zhoujianghua on 2015/8/7.
@@ -42,8 +43,9 @@ public class MsgViewHolderSticker extends MsgViewHolderBase {
 
         Glide.with(context)
                 .load(StickerManager.getInstance().getStickerUri(attachment.getCatalog(), attachment.getChartlet()))
-                .error(com.netease.nim.uikit.R.drawable.nim_default_img_failed)
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .apply(new RequestOptions()
+                        .error(com.netease.nim.uikit.R.drawable.nim_default_img_failed)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE))
                 .into(baseView);
     }
 

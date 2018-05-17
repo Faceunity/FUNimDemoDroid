@@ -8,11 +8,11 @@ import android.widget.Toast;
 
 import com.netease.nim.demo.R;
 import com.netease.nim.demo.chatroom.fragment.ChatRoomFragment;
-import com.netease.nim.demo.chatroom.fragment.ChatRoomMessageFragment;
-import com.netease.nim.demo.chatroom.helper.ChatRoomMemberCache;
+import com.netease.nim.uikit.business.chatroom.fragment.ChatRoomMessageFragment;
 import com.netease.nim.uikit.common.activity.UI;
 import com.netease.nim.uikit.common.ui.dialog.DialogMaker;
 import com.netease.nim.uikit.common.util.log.LogUtil;
+import com.netease.nim.uikit.api.NimUIKit;
 import com.netease.nimlib.sdk.AbortableFuture;
 import com.netease.nimlib.sdk.NIMClient;
 import com.netease.nimlib.sdk.Observer;
@@ -23,7 +23,6 @@ import com.netease.nimlib.sdk.chatroom.ChatRoomService;
 import com.netease.nimlib.sdk.chatroom.ChatRoomServiceObserver;
 import com.netease.nimlib.sdk.chatroom.model.ChatRoomInfo;
 import com.netease.nimlib.sdk.chatroom.model.ChatRoomKickOutEvent;
-import com.netease.nimlib.sdk.chatroom.model.ChatRoomMember;
 import com.netease.nimlib.sdk.chatroom.model.ChatRoomStatusChangeData;
 import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomData;
 import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomResultData;
@@ -86,6 +85,14 @@ public class ChatRoomActivity extends UI {
         logoutChatRoom();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (messageFragment != null) {
+            messageFragment.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
     private void enterRoom() {
         DialogMaker.showProgressDialog(this, null, "", true, new DialogInterface.OnCancelListener() {
             @Override
@@ -99,15 +106,14 @@ public class ChatRoomActivity extends UI {
         }).setCanceledOnTouchOutside(false);
         hasEnterSuccess = false;
         EnterChatRoomData data = new EnterChatRoomData(roomId);
+
         enterRequest = NIMClient.getService(ChatRoomService.class).enterChatRoomEx(data, 1);
         enterRequest.setCallback(new RequestCallback<EnterChatRoomResultData>() {
             @Override
             public void onSuccess(EnterChatRoomResultData result) {
                 onLoginDone();
                 roomInfo = result.getRoomInfo();
-                ChatRoomMember member = result.getMember();
-                member.setRoomId(roomInfo.getRoomId());
-                ChatRoomMemberCache.getInstance().saveMyMember(member);
+                NimUIKit.enterChatRoomSuccess(result, false);
                 initChatRoomFragment();
                 initMessageFragment();
                 hasEnterSuccess = true;
@@ -115,9 +121,6 @@ public class ChatRoomActivity extends UI {
 
             @Override
             public void onFailed(int code) {
-                // test
-                LogUtil.ui("enter chat room failed, callback code=" + code);
-
                 onLoginDone();
                 if (code == ResponseCode.RES_CHATROOM_BLACKLIST) {
                     Toast.makeText(ChatRoomActivity.this, "你已被拉入黑名单，不能再进入", Toast.LENGTH_SHORT).show();
@@ -145,11 +148,11 @@ public class ChatRoomActivity extends UI {
 
     private void logoutChatRoom() {
         NIMClient.getService(ChatRoomService.class).exitChatRoom(roomId);
-        clearChatRoom();
+        onExitedChatRoom();
     }
 
-    public void clearChatRoom() {
-        ChatRoomMemberCache.getInstance().clearRoomCache(roomId);
+    public void onExitedChatRoom() {
+        NimUIKit.exitedChatRoom(roomId);
         finish();
     }
 
@@ -193,7 +196,7 @@ public class ChatRoomActivity extends UI {
         @Override
         public void onEvent(ChatRoomKickOutEvent chatRoomKickOutEvent) {
             Toast.makeText(ChatRoomActivity.this, "被踢出聊天室，原因:" + chatRoomKickOutEvent.getReason(), Toast.LENGTH_SHORT).show();
-            clearChatRoom();
+            onExitedChatRoom();
         }
     };
 
