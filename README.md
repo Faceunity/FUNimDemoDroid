@@ -1,7 +1,7 @@
 本代码由云信 即时通讯DEMO修改
 # 对接步骤
 ## 添加module
-添加beautycontrolview module到工程中，在app dependencies里添加compile project(':beautycontrolview')
+添加faceunity module到工程中，在app dependencies里添加compile project(':faceunity')
 ## 修改代码
 ### 生成与销毁
 在AVChatActivity的
@@ -44,12 +44,12 @@ mFaceunityControlView.setOnFaceUnityControlListener(mFURenderer);
 更新方法为下载Faceunity*.zip解压后替换faceunity模块中的相应文件。
 # 定制需求
 ## 定制界面
-修改beautycontrolview中的界面代码
+修改faceunity中的界面代码
 BeautyControlView等或者自己编写。
 ## 定制道具
-beautycontrolview中EffectEnum指定的是effects里对应的道具的文件名，故如需增删道具只需要在effects增删相应的道具文件并在EffectEnum增删相应的项即可。
+faceunity中EffectEnum指定的是effects里对应的道具的文件名，故如需增删道具只需要在effects增删相应的道具文件并在EffectEnum增删相应的项即可。
 ## 修改默认美颜参数
-修改beautycontrolview中BeautyControlView中以下代码
+修改faceunity中BeautyControlView中以下代码
 ~~~
 private float mFaceBeautyALLBlurLevel = 1.0f;//精准磨皮
 private float mFaceBeautyType = 0.0f;//美肤类型
