@@ -2,8 +2,6 @@ package com.faceunity.beautycontrolview;
 
 import android.content.Context;
 import android.hardware.Camera;
-import android.opengl.GLES20;
-import android.opengl.Matrix;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -13,6 +11,9 @@ import android.util.Log;
 
 import com.faceunity.beautycontrolview.entity.Effect;
 import com.faceunity.beautycontrolview.entity.Filter;
+import com.faceunity.beautycontrolview.gles.core.EglCore;
+import com.faceunity.beautycontrolview.gles.core.EglSurfaceBase;
+import com.faceunity.beautycontrolview.gles.core.OffscreenSurface;
 import com.faceunity.wrapper.faceunity;
 
 import java.io.IOException;
@@ -178,6 +179,9 @@ public class FURenderer implements OnFaceUnityControlListener {
         mFuItemHandler = new FUItemHandler(mFuItemHandlerThread.getLooper());
     }
 
+    private EglSurfaceBase mEglSurfaceBase;
+    private EglCore mEglCore;
+
     /**
      * 创建及初始化faceunity相应的资源
      */
@@ -189,8 +193,8 @@ public class FURenderer implements OnFaceUnityControlListener {
          * 适用于没OpenGL环境时调用
          * 如果调用了fuCreateEGLContext，在销毁时需要调用fuReleaseEGLContext
          */
-        if (mIsCreateEGLContext) faceunity.fuCreateEGLContext();
-
+        if (mIsCreateEGLContext)
+            mEglSurfaceBase = new OffscreenSurface(mEglCore = new EglCore(), 640, 480);
         mFrameId = 0;
         /**
          *fuSetExpressionCalibration 控制表情校准功能的开关及不同模式，参数为0时关闭表情校准，1为主动校准，2为被动校准。
@@ -230,6 +234,7 @@ public class FURenderer implements OnFaceUnityControlListener {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
+                        mEglSurfaceBase.makeCurrent();
                         synchronized (lock) {
                             if (cameraFacing != mCurrentCameraType) {
                                 onCameraChange(cameraFacing, 0);
@@ -462,7 +467,10 @@ public class FURenderer implements OnFaceUnityControlListener {
         faceunity.fuDestroyAllItems();
         faceunity.fuOnDeviceLost();
         mEventQueue.clear();
-        if (mIsCreateEGLContext) faceunity.fuReleaseEGLContext();
+        if (mIsCreateEGLContext) {
+            mEglSurfaceBase.releaseEglSurface();
+            mEglCore.release();
+        }
     }
 
     /**
@@ -695,14 +703,14 @@ public class FURenderer implements OnFaceUnityControlListener {
     @Override
     public void onEnlargeEyeSelected(float progress) {
         isNeedUpdateFaceBeauty = true;
-            mFaceBeautyEnlargeEye = progress;
+        mFaceBeautyEnlargeEye = progress;
     }
 
 
     @Override
     public void onCheekThinSelected(float progress) {
         isNeedUpdateFaceBeauty = true;
-            mFaceBeautyCheekThin = progress;
+        mFaceBeautyCheekThin = progress;
     }
 
     @Override
