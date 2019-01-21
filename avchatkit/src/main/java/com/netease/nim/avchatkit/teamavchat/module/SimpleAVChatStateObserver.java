@@ -39,6 +39,16 @@ public class SimpleAVChatStateObserver implements AVChatStateObserver {
     }
 
     @Override
+    public void onAudioMixingProgressUpdated(long progressMs, long durationMs) {
+
+    }
+
+    @Override
+    public void onAudioMixingEvent(int event) {
+
+    }
+
+    @Override
     public void onFirstVideoFrameAvailable(String account) {
 
     }
@@ -121,11 +131,6 @@ public class SimpleAVChatStateObserver implements AVChatStateObserver {
 
     @Override
     public void onReportSpeaker(Map<String, Integer> speakers, int mixedEnergy) {
-
-    }
-
-    @Override
-    public void onAudioMixingEvent(int event) {
 
     }
 

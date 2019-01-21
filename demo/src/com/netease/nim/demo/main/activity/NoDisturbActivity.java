@@ -10,7 +10,8 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.Toast;
+
+import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.demo.R;
 import com.netease.nim.demo.config.preference.UserPreferences;
@@ -161,13 +162,13 @@ public class NoDisturbActivity extends UI implements SettingsAdapter.SwitchChang
                 // save
                 saveStatusConfig();
 
-                Toast.makeText(NoDisturbActivity.this, "免打扰设置成功 ", Toast.LENGTH_SHORT).show();
+                ToastHelper.showToast(NoDisturbActivity.this, "免打扰设置成功 ");
             }
 
             @Override
             public void onFailed(int code) {
                 resetFail(ischecked);
-                Toast.makeText(NoDisturbActivity.this, "免打扰设置失败 " + code, Toast.LENGTH_SHORT).show();
+                ToastHelper.showToast(NoDisturbActivity.this, "免打扰设置失败 " + code);
             }
 
             @Override

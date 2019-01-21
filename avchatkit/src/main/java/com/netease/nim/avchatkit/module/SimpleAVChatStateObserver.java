@@ -34,6 +34,11 @@ public class SimpleAVChatStateObserver implements AVChatStateObserver {
     }
 
     @Override
+    public void onAudioMixingProgressUpdated(long progressMs, long durationMs) {
+
+    }
+
+    @Override
     public void onAudioMixingEvent(int event) {
 
     }

@@ -8,8 +8,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-import android.widget.Toast;
 
+import com.netease.nim.uikit.common.ToastHelper;
 import com.netease.nim.demo.R;
 import com.netease.nim.demo.file.browser.FileBrowserAdapter.FileManagerItem;
 import com.netease.nim.uikit.common.activity.ToolBarOptions;
@@ -111,7 +111,7 @@ public class FileBrowserActivity extends UI implements TAdapterDelegate {
                     }
                 } else {
                     //没有权限
-                    Toast.makeText(FileBrowserActivity.this, R.string.no_permission, Toast.LENGTH_SHORT).show();
+                    ToastHelper.showToast(FileBrowserActivity.this, R.string.no_permission);
                 }
             }
         });

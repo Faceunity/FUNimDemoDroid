@@ -121,9 +121,8 @@ public class ImageUtil {
         return f;
     }
 
-    public static String makeThumbnail(Context context, File imageFile) {
-        String thumbFilePath = StorageUtil.getWritePath(imageFile.getName(),
-                StorageType.TYPE_THUMB_IMAGE);
+    public static String makeThumbnail(File imageFile) {
+        String thumbFilePath = StorageUtil.getWritePath(imageFile.getName(), StorageType.TYPE_THUMB_IMAGE);
         File thumbFile = AttachmentStore.create(thumbFilePath);
         if (thumbFile == null) {
             return null;

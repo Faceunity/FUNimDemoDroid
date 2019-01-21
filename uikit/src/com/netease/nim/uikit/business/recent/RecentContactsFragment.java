@@ -8,7 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.api.NimUIKit;
@@ -19,6 +20,7 @@ import com.netease.nim.uikit.api.model.team.TeamMemberDataChangedObserver;
 import com.netease.nim.uikit.api.model.user.UserInfoObserver;
 import com.netease.nim.uikit.business.recent.adapter.RecentContactAdapter;
 import com.netease.nim.uikit.business.uinfo.UserInfoHelper;
+import com.netease.nim.uikit.common.CommonUtil;
 import com.netease.nim.uikit.common.badger.Badger;
 import com.netease.nim.uikit.common.fragment.TFragment;
 import com.netease.nim.uikit.common.ui.dialog.CustomAlertDialog;
@@ -62,7 +64,7 @@ import static com.netease.nim.uikit.common.ui.dialog.CustomAlertDialog.onSeparat
 public class RecentContactsFragment extends TFragment {
 
     // 置顶功能可直接使用，也可作为思路，供开发者充分利用RecentContact的tag字段
-    public static final long RECENT_TAG_STICKY = 1; // 联系人置顶tag
+    public static final long RECENT_TAG_STICKY = 0x0000000000000001; // 联系人置顶tag
 
     // view
     private RecyclerView recyclerView;
@@ -108,12 +110,14 @@ public class RecentContactsFragment extends TFragment {
         emptyHint.setHint("还没有会话，在通讯录中找个人聊聊吧！");
     }
 
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         registerObservers(false);
         registerDropCompletedListener(false);
         registerOnlineStateChangeListener(false);
+        DropManager.getInstance().setDropListener(null);
     }
 
     /**
@@ -255,14 +259,14 @@ public class RecentContactsFragment extends TFragment {
             }
         });
 
-        title = (isTagSet(recent, RECENT_TAG_STICKY) ? getString(R.string.main_msg_list_clear_sticky_on_top) : getString(R.string.main_msg_list_sticky_on_top));
+        title = (CommonUtil.isTagSet(recent, RECENT_TAG_STICKY) ? getString(R.string.main_msg_list_clear_sticky_on_top) : getString(R.string.main_msg_list_sticky_on_top));
         alertDialog.addItem(title, new onSeparateItemClickListener() {
             @Override
             public void onClick() {
-                if (isTagSet(recent, RECENT_TAG_STICKY)) {
-                    removeTag(recent, RECENT_TAG_STICKY);
+                if (CommonUtil.isTagSet(recent, RECENT_TAG_STICKY)) {
+                    CommonUtil.removeTag(recent, RECENT_TAG_STICKY);
                 } else {
-                    addTag(recent, RECENT_TAG_STICKY);
+                    CommonUtil.addTag(recent, RECENT_TAG_STICKY);
                 }
                 NIMClient.getService(MsgService.class).updateRecent(recent);
 
@@ -278,12 +282,12 @@ public class RecentContactsFragment extends TFragment {
                         .setCallback(new RequestCallback<Void>() {
                             @Override
                             public void onSuccess(Void param) {
-                                Toast.makeText(getActivity(), "delete success", Toast.LENGTH_SHORT).show();
+                                ToastHelper.showToast(getActivity(), "delete success");
                             }
 
                             @Override
                             public void onFailed(int code) {
-                                Toast.makeText(getActivity(), "delete failed, code:" + code, Toast.LENGTH_SHORT).show();
+                                ToastHelper.showToast(getActivity(), "delete failed, code:" + code);
                             }
 
                             @Override
@@ -294,20 +298,6 @@ public class RecentContactsFragment extends TFragment {
             }
         });
         alertDialog.show();
-    }
-
-    private void addTag(RecentContact recent, long tag) {
-        tag = recent.getTag() | tag;
-        recent.setTag(tag);
-    }
-
-    private void removeTag(RecentContact recent, long tag) {
-        tag = recent.getTag() & ~tag;
-        recent.setTag(tag);
-    }
-
-    private boolean isTagSet(RecentContact recent, long tag) {
-        return (recent.getTag() & tag) == tag;
     }
 
     private List<RecentContact> loadedRecents;

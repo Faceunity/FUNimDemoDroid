@@ -2,7 +2,7 @@ package com.netease.nim.uikit.business.team.helper;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.widget.Toast;
+import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.api.NimUIKit;
@@ -249,7 +249,7 @@ public class TeamHelper {
                 }
             }
             tipContent.append("所在群组数量达到上限，邀请失败");
-            Toast.makeText(context, tipContent.toString(), Toast.LENGTH_SHORT).show();
+            ToastHelper.showToast(context, tipContent.toString());
         }
     }
 

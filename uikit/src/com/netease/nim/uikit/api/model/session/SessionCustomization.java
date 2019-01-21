@@ -7,6 +7,7 @@ import android.view.View;
 
 import com.netease.nim.uikit.business.session.actions.BaseAction;
 import com.netease.nimlib.sdk.msg.attachment.MsgAttachment;
+import com.netease.nimlib.sdk.msg.model.IMMessage;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -33,7 +34,6 @@ public class SessionCustomization implements Serializable {
 
     /**
      * 加号展开后的action list。
-     * 默认已包含图片，视频和地理位置
      */
     public ArrayList<BaseAction> actions;
 
@@ -52,6 +52,10 @@ public class SessionCustomization implements Serializable {
      * @param data        返回的结果数据
      */
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+    }
+
+    public boolean isAllowSendMessage(IMMessage message) {
+        return true;
     }
 
     // uikit内建了对贴图消息的输入和管理展示，并和emoji表情整合在了一起，但贴图消息的附件定义开发者需要根据自己的扩展

@@ -8,7 +8,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
+
+import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.demo.R;
 import com.netease.nim.demo.main.adapter.SystemMessageAdapter;
@@ -398,8 +399,7 @@ public class SystemMessageActivity extends UI implements TAdapterDelegate,
     }
 
     private void onProcessFailed(final int code, SystemMessage message) {
-        Toast.makeText(SystemMessageActivity.this, "failed, error code=" + code,
-                Toast.LENGTH_LONG).show();
+        ToastHelper.showToastLong(SystemMessageActivity.this, "failed, error code=" + code);
         if (code == 408) {
             return;
         }
@@ -483,7 +483,7 @@ public class SystemMessageActivity extends UI implements TAdapterDelegate,
         NIMClient.getService(SystemMessageService.class).resetSystemMessageUnreadCount();
         items.clear();
         refresh();
-        Toast.makeText(SystemMessageActivity.this, R.string.clear_all_success, Toast.LENGTH_SHORT).show();
+        ToastHelper.showToast(SystemMessageActivity.this, R.string.clear_all_success);
     }
 
     private void showLongClickMenu(final SystemMessage message) {
@@ -503,6 +503,6 @@ public class SystemMessageActivity extends UI implements TAdapterDelegate,
         NIMClient.getService(SystemMessageService.class).deleteSystemMessage(message.getMessageId());
         items.remove(message);
         refresh();
-        Toast.makeText(SystemMessageActivity.this, R.string.delete_success, Toast.LENGTH_SHORT).show();
+        ToastHelper.showToast(SystemMessageActivity.this, R.string.delete_success);
     }
 }

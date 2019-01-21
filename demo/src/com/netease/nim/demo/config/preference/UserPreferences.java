@@ -21,6 +21,9 @@ public class UserPreferences {
     private final static String KEY_MSG_IGNORE = "KEY_MSG_IGNORE";
     // 响铃配置
     private final static String KEY_RING_TOGGLE = "KEY_RING_TOGGLE";
+
+    // 震动配置
+    private final static String KEY_VIBRATE_TOGGLE = "KEY_VIBRATE_TOGGLE";
     // 呼吸灯配置
     private final static String KEY_LED_TOGGLE = "KEY_LED_TOGGLE";
     // 通知栏标题配置
@@ -54,6 +57,14 @@ public class UserPreferences {
 
     public static boolean getRingToggle() {
         return getBoolean(KEY_RING_TOGGLE, true);
+    }
+
+    public static void setVibrateToggle(boolean on) {
+        saveBoolean(KEY_VIBRATE_TOGGLE, on);
+    }
+
+    public static boolean getVibrateToggle() {
+        return getBoolean(KEY_VIBRATE_TOGGLE, true);
     }
 
     public static void setLedToggle(boolean on) {

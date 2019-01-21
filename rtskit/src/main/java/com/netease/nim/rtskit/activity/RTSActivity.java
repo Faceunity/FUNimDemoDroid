@@ -43,6 +43,7 @@ import com.netease.nimlib.sdk.rts.model.RTSCalleeAckEvent;
 import com.netease.nimlib.sdk.rts.model.RTSCommonEvent;
 import com.netease.nimlib.sdk.rts.model.RTSControlEvent;
 import com.netease.nimlib.sdk.rts.model.RTSData;
+import com.netease.nimlib.sdk.rts.model.RTSNetworkProxy;
 import com.netease.nimlib.sdk.rts.model.RTSNotifyOption;
 import com.netease.nimlib.sdk.rts.model.RTSOnlineAckEvent;
 import com.netease.nimlib.sdk.rts.model.RTSOptions;
@@ -512,6 +513,14 @@ public class RTSActivity extends UI implements View.OnClickListener {
         RTSNotifyOption notifyOption = new RTSNotifyOption();
         notifyOption.apnsContent = pushContent;
         notifyOption.extendMessage = extra;
+        //代理测试
+//        RTSNetworkProxy networkProxy = new RTSNetworkProxy();
+//        networkProxy.host = "10.234.1.23";
+//        networkProxy.port = 8080;
+//        networkProxy.userName = "test";
+//        networkProxy.userPassword = "testPwd";
+//        RTSManager.getInstance().setNetworkProxy(networkProxy);
+
         sessionId = RTSManager.getInstance().start(account, types, options, notifyOption, new RTSCallback<RTSData>() {
             @Override
             public void onSuccess(RTSData rtsData) {

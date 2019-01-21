@@ -10,6 +10,7 @@ import com.netease.nim.demo.main.activity.WelcomeActivity;
 import com.netease.nim.uikit.api.wrapper.MessageRevokeTip;
 import com.netease.nim.uikit.api.wrapper.NimUserInfoProvider;
 import com.netease.nim.uikit.business.session.viewholder.MsgViewHolderThumbBase;
+import com.netease.nimlib.sdk.NosTokenSceneConfig;
 import com.netease.nimlib.sdk.SDKOptions;
 import com.netease.nimlib.sdk.ServerAddresses;
 import com.netease.nimlib.sdk.StatusBarNotificationConfig;
@@ -69,13 +70,33 @@ class NimSDKOptionConfig {
         // 是否启用群消息已读功能，默认关闭
         options.enableTeamMsgAck = true;
 
-        // 配置第三方推送
-        options.mixPushConfig = buildMixPushConfig();
+
+        // 打开消息撤回未读数-1的开关
+        options.shouldConsiderRevokedMessageUnreadCount = true;
 
         // 云信私有化配置项
         configServerAddress(options);
 
+        options.mixPushConfig = buildMixPushConfig();
+
+//        options.mNosTokenSceneConfig = createNosTokenScene();
+
+        options.loginCustomTag = "登录自定义字段";
         return options;
+    }
+
+    public static final String TEST_NOS_SCENE_KEY = "test_nos_scene_key";
+
+    /**
+     *nos 场景配置
+     */
+    private static NosTokenSceneConfig createNosTokenScene() {
+        NosTokenSceneConfig nosTokenSceneConfig = new NosTokenSceneConfig();
+        nosTokenSceneConfig.updateDefaultIMSceneExpireTime(1);
+        nosTokenSceneConfig.updateDefaultProfileSceneExpireTime(2);
+        // scene key 建议常量化，这样使用起来比较方便
+        nosTokenSceneConfig.appendCustomScene(TEST_NOS_SCENE_KEY, 4);
+        return nosTokenSceneConfig;
     }
 
     /**
@@ -192,7 +213,7 @@ class NimSDKOptionConfig {
         config.mzAppKey = "282bdd3a37ec4f898f47c5bbbf9d2369";
         config.mzCertificateName = "DEMO_MZ_PUSH";
 
-        // fcm 推送，适用于海外用户
+        // fcm 推送，适用于海外用户，不使用fcm请不要配置
         config.fcmCertificateName = "DEMO_FCM_PUSH";
 
         return config;

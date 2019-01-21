@@ -1,9 +1,11 @@
 package com.netease.nim.demo.main.fragment;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.demo.R;
 import com.netease.nim.demo.config.preference.Preferences;
@@ -43,6 +45,7 @@ import java.util.Map;
  */
 public class SessionListFragment extends MainTabFragment {
 
+    private static final String TAG = SessionListFragment.class.getSimpleName();
     private View notifyBar;
 
     private TextView notifyBarText;
@@ -135,8 +138,13 @@ public class SessionListFragment extends MainTabFragment {
                 multiportBar.setVisibility(View.GONE);
             } else {
                 multiportBar.setVisibility(View.VISIBLE);
-                TextView status = (TextView) multiportBar.findViewById(R.id.multiport_desc_label);
+                TextView status = multiportBar.findViewById(R.id.multiport_desc_label);
                 OnlineClient client = onlineClients.get(0);
+
+                for (OnlineClient temp : onlineClients) {
+                    Log.d(TAG, "type : " + temp.getClientType() + " , customTag : " + temp.getCustomTag());
+                }
+
                 switch (client.getClientType()) {
                     case ClientType.Windows:
                     case ClientType.MAC:
@@ -162,7 +170,7 @@ public class SessionListFragment extends MainTabFragment {
 
         if (code == StatusCode.PWD_ERROR) {
             LogUtil.e("Auth", "user password error");
-            Toast.makeText(getActivity(), R.string.login_failed, Toast.LENGTH_SHORT).show();
+            ToastHelper.showToast(getActivity(), R.string.login_failed);
         } else {
             LogUtil.i("Auth", "Kicked!");
         }

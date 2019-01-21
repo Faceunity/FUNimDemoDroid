@@ -2,6 +2,7 @@ package com.netease.nim.uikit.business.contact.core.model;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -33,29 +34,17 @@ import java.util.Map;
  */
 public class ContactDataAdapter extends BaseAdapter {
 
-    //
-    // COMPONENTS
-    //
-
     private final Context context;
 
-    private final Map<Integer, Class<? extends AbsContactViewHolder<? extends AbsContactItem>>> viewHolderMap;
+    private final SparseArray<Class<? extends AbsContactViewHolder<? extends AbsContactItem>>> viewHolderMap;
 
     private final ContactGroupStrategy groupStrategy;
 
     private final IContactDataProvider dataProvider;
 
-    //
-    // DATAS
-    //
-
     private AbsContactDataList datas;
 
-    protected final HashMap<String, Integer> indexes = new HashMap<>();
-
-    //
-    // OPTIONS
-    //
+    private final HashMap<String, Integer> indexes = new HashMap<>();
 
     private ContactItemFilter filter;
 
@@ -65,7 +54,7 @@ public class ContactDataAdapter extends BaseAdapter {
         this.context = context;
         this.groupStrategy = groupStrategy;
         this.dataProvider = dataProvider;
-        this.viewHolderMap = new HashMap<>(6);
+        this.viewHolderMap = new SparseArray<>(6);
     }
 
     public void addViewHolder(int itemDataType, Class<? extends AbsContactViewHolder<? extends AbsContactItem>> viewHolder) {
@@ -83,10 +72,6 @@ public class ContactDataAdapter extends BaseAdapter {
     public final LivIndex createLivIndex(ListView lv, LetterIndexView liv, TextView tvHit, ImageView ivBk) {
         return new LivIndex(lv, liv, tvHit, ivBk, getIndexes());
     }
-
-    //
-    // BaseAdapter
-    //
 
     @Override
     public int getCount() {
@@ -128,15 +113,7 @@ public class ContactDataAdapter extends BaseAdapter {
         }
         AbsContactItem item = (AbsContactItem) obj;
         int type = item.getItemType();
-        Integer[] types = viewHolderMap.keySet().toArray(new Integer[viewHolderMap.size()]);
-
-        for (int i = 0; i < types.length; i++) {
-            int itemType = types[i];
-            if (itemType == type) {
-                return i;
-            }
-        }
-        return -1;
+        return viewHolderMap.indexOfKey(type);
     }
 
     @Override
@@ -156,6 +133,10 @@ public class ContactDataAdapter extends BaseAdapter {
                 holder = (AbsContactViewHolder<AbsContactItem>) viewHolderMap.get(item.getItemType()).newInstance();
                 if (holder != null) {
                     holder.create(context);
+
+
+
+
                 }
             }
         } catch (Exception e) {
@@ -182,10 +163,6 @@ public class ContactDataAdapter extends BaseAdapter {
 
         return true;
     }
-
-    //
-    // LOAD
-    //
 
     public final void query(String query) {
         startTask(new TextQuery(query), true);
@@ -257,10 +234,6 @@ public class ContactDataAdapter extends BaseAdapter {
             this.task = task;
         }
 
-        //
-        // HOST
-        //
-
         @Override
         public void onData(ContactDataTask task, AbsContactDataList datas, boolean all) {
             publishProgress(datas, all);
@@ -270,10 +243,6 @@ public class ContactDataAdapter extends BaseAdapter {
         public boolean isCancelled(ContactDataTask task) {
             return isCancelled();
         }
-
-        //
-        // AsyncTask
-        //
 
         @Override
         protected void onPreExecute() {
@@ -308,9 +277,6 @@ public class ContactDataAdapter extends BaseAdapter {
         }
     }
 
-    //
-    // Overrides
-    //
 
     /**
      * 数据未准备
@@ -333,9 +299,6 @@ public class ContactDataAdapter extends BaseAdapter {
         return null;
     }
 
-    //
-    // INDEX
-    //
 
     private Map<String, Integer> getIndexes() {
         return this.indexes;
@@ -347,4 +310,5 @@ public class ContactDataAdapter extends BaseAdapter {
         // SET
         this.indexes.putAll(indexes);
     }
+
 }

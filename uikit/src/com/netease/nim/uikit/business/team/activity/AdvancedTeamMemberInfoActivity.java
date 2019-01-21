@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
+import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.api.NimUIKit;
@@ -201,7 +201,7 @@ public class AdvancedTeamMemberInfoActivity extends UI implements View.OnClickLi
         public void OnChanged(View v, final boolean checkState) {
             final String key = (String) v.getTag();
             if (!NetworkUtil.isNetAvailable(AdvancedTeamMemberInfoActivity.this)) {
-                Toast.makeText(AdvancedTeamMemberInfoActivity.this, R.string.network_is_not_available, Toast.LENGTH_SHORT).show();
+                ToastHelper.showToast(AdvancedTeamMemberInfoActivity.this, R.string.network_is_not_available);
                 if (key.equals(KEY_MUTE_MSG)) {
                     muteSwitch.setCheck(!checkState);
                 }
@@ -215,18 +215,18 @@ public class AdvancedTeamMemberInfoActivity extends UI implements View.OnClickLi
                     @Override
                     public void onSuccess(Void param) {
                         if (checkState) {
-                            Toast.makeText(AdvancedTeamMemberInfoActivity.this, "群禁言成功", Toast.LENGTH_SHORT).show();
+                            ToastHelper.showToast(AdvancedTeamMemberInfoActivity.this, "群禁言成功");
                         } else {
-                            Toast.makeText(AdvancedTeamMemberInfoActivity.this, "取消群禁言成功", Toast.LENGTH_SHORT).show();
+                            ToastHelper.showToast(AdvancedTeamMemberInfoActivity.this, "取消群禁言成功");
                         }
                     }
 
                     @Override
                     public void onFailed(int code) {
                         if (code == 408) {
-                            Toast.makeText(AdvancedTeamMemberInfoActivity.this, R.string.network_is_not_available, Toast.LENGTH_SHORT).show();
+                            ToastHelper.showToast(AdvancedTeamMemberInfoActivity.this, R.string.network_is_not_available);
                         } else {
-                            Toast.makeText(AdvancedTeamMemberInfoActivity.this, "on failed:" + code, Toast.LENGTH_SHORT).show();
+                            ToastHelper.showToast(AdvancedTeamMemberInfoActivity.this, "on failed:" + code);
                         }
                         updateStateMap(!checkState, key);
                         muteSwitch.setCheck(!checkState);
@@ -359,14 +359,13 @@ public class AdvancedTeamMemberInfoActivity extends UI implements View.OnClickLi
             public void onSuccess(Void param) {
                 DialogMaker.dismissProgressDialog();
                 nickName.setText(name != null ? name : getString(R.string.team_nickname_none));
-                Toast.makeText(AdvancedTeamMemberInfoActivity.this, R.string.update_success, Toast.LENGTH_SHORT).show();
+                ToastHelper.showToast(AdvancedTeamMemberInfoActivity.this, R.string.update_success);
             }
 
             @Override
             public void onFailed(int code) {
                 DialogMaker.dismissProgressDialog();
-                Toast.makeText(AdvancedTeamMemberInfoActivity.this, String.format(getString(R.string.update_failed), code),
-                        Toast.LENGTH_SHORT).show();
+                ToastHelper.showToast(AdvancedTeamMemberInfoActivity.this, String.format(getString(R.string.update_failed), code));
             }
 
             @Override
@@ -410,7 +409,7 @@ public class AdvancedTeamMemberInfoActivity extends UI implements View.OnClickLi
         } else if (isSelfManager && identity.getText().toString().equals(getString(R.string.team_member))) {
             AdvancedTeamNicknameActivity.start(AdvancedTeamMemberInfoActivity.this, nickName.getText().toString());
         } else {
-            Toast.makeText(this, R.string.no_permission, Toast.LENGTH_SHORT).show();
+            ToastHelper.showToast(this, R.string.no_permission);
         }
     }
 
@@ -479,7 +478,7 @@ public class AdvancedTeamMemberInfoActivity extends UI implements View.OnClickLi
             public void onSuccess(List<TeamMember> managers) {
                 DialogMaker.dismissProgressDialog();
                 identity.setText(R.string.team_admin);
-                Toast.makeText(AdvancedTeamMemberInfoActivity.this, R.string.update_success, Toast.LENGTH_LONG).show();
+                ToastHelper.showToastLong(AdvancedTeamMemberInfoActivity.this, R.string.update_success);
 
                 viewMember = managers.get(0);
                 updateMemberInfo();
@@ -488,7 +487,7 @@ public class AdvancedTeamMemberInfoActivity extends UI implements View.OnClickLi
             @Override
             public void onFailed(int code) {
                 DialogMaker.dismissProgressDialog();
-                Toast.makeText(AdvancedTeamMemberInfoActivity.this, String.format(getString(R.string.update_failed), code), Toast.LENGTH_LONG).show();
+                ToastHelper.showToastLong(AdvancedTeamMemberInfoActivity.this, String.format(getString(R.string.update_failed), code));
             }
 
             @Override
@@ -510,7 +509,7 @@ public class AdvancedTeamMemberInfoActivity extends UI implements View.OnClickLi
             public void onSuccess(List<TeamMember> members) {
                 DialogMaker.dismissProgressDialog();
                 identity.setText(R.string.team_member);
-                Toast.makeText(AdvancedTeamMemberInfoActivity.this, R.string.update_success, Toast.LENGTH_LONG).show();
+                ToastHelper.showToastLong(AdvancedTeamMemberInfoActivity.this, R.string.update_success);
 
                 viewMember = members.get(0);
                 updateMemberInfo();
@@ -519,7 +518,7 @@ public class AdvancedTeamMemberInfoActivity extends UI implements View.OnClickLi
             @Override
             public void onFailed(int code) {
                 DialogMaker.dismissProgressDialog();
-                Toast.makeText(AdvancedTeamMemberInfoActivity.this, String.format(getString(R.string.update_failed), code), Toast.LENGTH_LONG).show();
+                ToastHelper.showToastLong(AdvancedTeamMemberInfoActivity.this, String.format(getString(R.string.update_failed), code));
             }
 
             @Override
@@ -560,13 +559,13 @@ public class AdvancedTeamMemberInfoActivity extends UI implements View.OnClickLi
                 DialogMaker.dismissProgressDialog();
                 makeIntent(account, isSetAdmin, true);
                 finish();
-                Toast.makeText(AdvancedTeamMemberInfoActivity.this, R.string.update_success, Toast.LENGTH_LONG).show();
+                ToastHelper.showToastLong(AdvancedTeamMemberInfoActivity.this, R.string.update_success);
             }
 
             @Override
             public void onFailed(int code) {
                 DialogMaker.dismissProgressDialog();
-                Toast.makeText(AdvancedTeamMemberInfoActivity.this, String.format(getString(R.string.update_failed), code), Toast.LENGTH_LONG).show();
+                ToastHelper.showToastLong(AdvancedTeamMemberInfoActivity.this, String.format(getString(R.string.update_failed), code));
             }
 
             @Override

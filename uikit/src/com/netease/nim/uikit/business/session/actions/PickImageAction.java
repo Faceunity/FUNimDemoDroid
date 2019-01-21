@@ -2,7 +2,7 @@ package com.netease.nim.uikit.business.session.actions;
 
 import android.content.Intent;
 import android.text.TextUtils;
-import android.widget.Toast;
+import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.business.session.constant.Extras;
@@ -84,7 +84,7 @@ public abstract class PickImageAction extends BaseAction {
      */
     private void onPickImageActivityResult(int requestCode, Intent data) {
         if (data == null) {
-            Toast.makeText(getActivity(), R.string.picker_image_error, Toast.LENGTH_LONG).show();
+            ToastHelper.showToastLong(getActivity(), R.string.picker_image_error);
             return;
         }
         boolean local = data.getBooleanExtra(Extras.EXTRA_FROM_LOCAL, false);
@@ -109,7 +109,7 @@ public abstract class PickImageAction extends BaseAction {
     private boolean handleImagePath(Intent intent, Intent data) {
         String photoPath = data.getStringExtra(Extras.EXTRA_FILE_PATH);
         if (TextUtils.isEmpty(photoPath)) {
-            Toast.makeText(getActivity(), R.string.picker_image_error, Toast.LENGTH_LONG).show();
+            ToastHelper.showToast(getActivity(), R.string.picker_image_error);
             return false;
         }
 
@@ -124,10 +124,10 @@ public abstract class PickImageAction extends BaseAction {
         }
 
         if (scaledImageFile == null) {
-            Toast.makeText(getActivity(), R.string.picker_image_error, Toast.LENGTH_LONG).show();
+            ToastHelper.showToast(getActivity(), R.string.picker_image_error);
             return false;
         } else {
-            ImageUtil.makeThumbnail(getActivity(), scaledImageFile);
+            ImageUtil.makeThumbnail(scaledImageFile);
         }
         intent.putExtra("ImageFilePath", scaledImageFile.getAbsolutePath());
         return true;

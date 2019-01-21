@@ -145,9 +145,10 @@
     <string name="no_disturb">免打扰</string>
     <string name="multiport_push">PC/Web在线推送</string>
     <string name="msg_notice">消息提醒</string>
+    <string name="recent_sticky">消息置顶</string>
     <string name="setting_about">关于</string>
     <string name="setting_close">已关闭</string>
-    <string name="no_disturb_tips">在设定的时间段内云信消息将不再提醒</string>
+    <string name="no_disturb_tips">在设定的时间段内云信消息提醒将不再响铃振动</string>
     <string name="time_from">从</string>
     <string name="time_to">至</string>
     <string name="time_from_default">22:00</string>
@@ -155,6 +156,7 @@
     <string name="black_list">黑名单</string>
     <string name="msg_speaker">听筒模式</string>
     <string name="ring">响铃模式</string>
+    <string name="vibrate">振动模式</string>
     <string name="led">自定义呼吸灯</string>
     <string name="notice_content">通知栏标题定制</string>
     <string name="clear_index">清理全文检索缓存</string>

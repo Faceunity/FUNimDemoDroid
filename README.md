@@ -1,4 +1,4 @@
-本代码由云信 即时通讯DEMO修改
+本代码由**[云信即时通讯](https://yunxin.163.com/im-demo)**DEMO修改
 # 对接步骤
 ## 添加module
 添加faceunity module到工程中，在app dependencies里添加compile project(':faceunity')

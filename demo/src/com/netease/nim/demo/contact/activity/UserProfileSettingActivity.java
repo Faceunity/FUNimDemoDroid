@@ -10,7 +10,8 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.demo.R;
 import com.netease.nim.demo.contact.constant.UserConstant;
@@ -139,7 +140,7 @@ public class UserProfileSettingActivity extends UI implements View.OnClickListen
                         userInfo = result;
                         updateUI();
                     } else {
-                        Toast.makeText(UserProfileSettingActivity.this, "getUserInfoFromRemote failed:" + code, Toast.LENGTH_SHORT).show();
+                        ToastHelper.showToast(UserProfileSettingActivity.this, "getUserInfoFromRemote failed:" + code);
                     }
                 }
             });
@@ -257,16 +258,15 @@ public class UserProfileSettingActivity extends UI implements View.OnClickListen
                         @Override
                         public void onResult(int code, Void result, Throwable exception) {
                             if (code == ResponseCode.RES_SUCCESS) {
-                                Toast.makeText(UserProfileSettingActivity.this, R.string.head_update_success, Toast.LENGTH_SHORT).show();
+                                ToastHelper.showToast(UserProfileSettingActivity.this, R.string.head_update_success);
                                 onUpdateDone();
                             } else {
-                                Toast.makeText(UserProfileSettingActivity.this, R.string.head_update_failed, Toast.LENGTH_SHORT).show();
+                                ToastHelper.showToast(UserProfileSettingActivity.this, R.string.head_update_failed);
                             }
                         }
                     }); // 更新资料
                 } else {
-                    Toast.makeText(UserProfileSettingActivity.this, R.string.user_info_update_failed, Toast
-                            .LENGTH_SHORT).show();
+                    ToastHelper.showToast(UserProfileSettingActivity.this, R.string.user_info_update_failed);
                     onUpdateDone();
                 }
             }
@@ -276,7 +276,7 @@ public class UserProfileSettingActivity extends UI implements View.OnClickListen
     private void cancelUpload(int resId) {
         if (uploadAvatarFuture != null) {
             uploadAvatarFuture.abort();
-            Toast.makeText(UserProfileSettingActivity.this, resId, Toast.LENGTH_SHORT).show();
+            ToastHelper.showToast(UserProfileSettingActivity.this, resId);
             onUpdateDone();
         }
     }

@@ -23,7 +23,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.common.activity.UI;
@@ -47,7 +47,7 @@ public class CaptureVideoActivity extends UI implements SurfaceHolder.Callback {
 
     private static final String TAG = "video";
 
-    private static final String EXTRA_DATA_FILE_NAME = "EXTRA_DATA_FILE_NAME";
+    public static final String EXTRA_DATA_FILE_NAME = "EXTRA_DATA_FILE_NAME";
 
     private static final int VIDEO_TIMES = 180;
 
@@ -480,7 +480,7 @@ public class CaptureVideoActivity extends UI implements SurfaceHolder.Callback {
             startRecorderInternal();
         } catch (Exception e) {
             LogUtil.e(TAG, "start MediaRecord failed: " + e);
-            Toast.makeText(this, R.string.start_camera_to_record_failed, Toast.LENGTH_SHORT).show();
+            ToastHelper.showToast(this, R.string.start_camera_to_record_failed);
             mediaRecorder.release();
             mediaRecorder = null;
             camera.release();
@@ -544,6 +544,7 @@ public class CaptureVideoActivity extends UI implements SurfaceHolder.Callback {
             public void doOkAction() {
                 Intent intent = new Intent();
                 intent.putExtra("duration", duration);
+                intent.putExtra(EXTRA_DATA_FILE_NAME, filename);
                 setResult(RESULT_OK, intent);
                 finish();
             }
@@ -607,7 +608,7 @@ public class CaptureVideoActivity extends UI implements SurfaceHolder.Callback {
             }
         } catch (RuntimeException e) {
             LogUtil.e(TAG, "init camera failed: " + e);
-            Toast.makeText(this, R.string.connect_vedio_device_fail, Toast.LENGTH_SHORT).show();
+            ToastHelper.showToast(this, R.string.connect_vedio_device_fail);
             return false;
         }
 
@@ -692,7 +693,7 @@ public class CaptureVideoActivity extends UI implements SurfaceHolder.Callback {
             camera.startPreview();
             previewing = true;
         } catch (Exception e) {
-            Toast.makeText(this, R.string.connect_vedio_device_fail, Toast.LENGTH_SHORT).show();
+            ToastHelper.showToast(this, R.string.connect_vedio_device_fail);
             shutdownCamera();
             e.printStackTrace();
         }

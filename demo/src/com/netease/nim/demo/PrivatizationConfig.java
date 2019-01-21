@@ -18,7 +18,7 @@ class PrivatizationConfig {
     private static ServerAddresses get() {
         ServerAddresses addresses = new ServerAddresses();
         addresses.nosDownload = "nos.netease.com";
-        addresses.nosAccess = "{bucket}.nosdn.127.net/{object}";
+        addresses.nosAccess = "{bucket}-nosdn.netease.im/{object}";
         return addresses;
     }
 }

@@ -13,12 +13,13 @@ import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.api.wrapper.NimToolBarOptions;
 import com.netease.nim.uikit.business.session.constant.Extras;
 import com.netease.nim.uikit.business.session.constant.RequestCode;
+import com.netease.nim.uikit.common.ToastHelper;
 import com.netease.nim.uikit.common.activity.ToolBarOptions;
 import com.netease.nim.uikit.common.activity.UI;
 import com.netease.nim.uikit.common.media.picker.adapter.PickerPreviewPagerAdapter;
@@ -213,7 +214,7 @@ public class PickerAlbumPreviewActivity extends UI implements OnClickListener, O
         Bitmap bitmap = BitmapDecoder.decodeSampledForDisplay(info.getAbsolutePath());
         if (bitmap == null) {
             currentImageView.setImageBitmap(ImageUtil.getDefaultBitmapWhenGetFail());
-            Toast.makeText(this, R.string.picker_image_error, Toast.LENGTH_LONG).show();
+            ToastHelper.showToastLong(this, R.string.picker_image_error);
         } else {
             try {
                 bitmap = ImageUtil.rotateBitmapInNeeded(info.getAbsolutePath(), bitmap);
@@ -321,8 +322,8 @@ public class PickerAlbumPreviewActivity extends UI implements OnClickListener, O
             PhotoInfo selectPhoto = photoLists.get(currentPosition);
             boolean isChoose = selectPhoto.isChoose();
             if (selectPhotoList != null && selectPhotoList.size() >= mutiSelectLimitSize && !isChoose) {
-                Toast.makeText(this, String.format(getResources().getString(R.string.picker_image_exceed_max_image_select)
-                        , mutiSelectLimitSize), Toast.LENGTH_SHORT).show();
+                ToastHelper.showToast(this, String.format(getResources().getString(R.string.picker_image_exceed_max_image_select)
+                        , mutiSelectLimitSize));
                 return;
             }
             selectPhoto.setChoose(!isChoose);

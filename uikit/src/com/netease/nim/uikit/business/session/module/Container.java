@@ -8,6 +8,7 @@ import com.netease.nimlib.sdk.msg.constant.SessionTypeEnum;
  * Created by zhoujianghua on 2015/7/6.
  */
 public class Container {
+
     public final Activity activity;
     public final String account;
     public final SessionTypeEnum sessionType;
