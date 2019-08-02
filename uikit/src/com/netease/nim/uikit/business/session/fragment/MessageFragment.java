@@ -132,7 +132,7 @@ public class MessageFragment extends TFragment implements ModuleProxy {
         IMMessage anchor = (IMMessage) arguments.getSerializable(Extras.EXTRA_ANCHOR);
 
         customization = (SessionCustomization) arguments.getSerializable(Extras.EXTRA_CUSTOMIZATION);
-        Container container = new Container(getActivity(), sessionId, sessionType, this);
+        Container container = new Container(getActivity(), sessionId, sessionType, this, true);
 
         if (messageListPanel == null) {
             messageListPanel = new MessageListPanelEx(container, rootView, anchor, false, false);

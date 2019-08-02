@@ -37,8 +37,6 @@ class NimSDKOptionConfig {
         // 配置 APP 保存图片/语音/文件/log等数据的目录
         options.sdkStorageRootPath = getAppCacheDir(context) + "/nim"; // 可以不设置，那么将采用默认路径
 
-        // 配置数据库加密秘钥
-        options.databaseEncryptKey = "NETEASE";
 
         // 配置是否需要预下载附件缩略图
         options.preloadAttach = true;
@@ -75,7 +73,7 @@ class NimSDKOptionConfig {
         options.shouldConsiderRevokedMessageUnreadCount = true;
 
         // 云信私有化配置项
-        configServerAddress(options);
+        configServerAddress(options, context);
 
         options.mixPushConfig = buildMixPushConfig();
 
@@ -88,7 +86,7 @@ class NimSDKOptionConfig {
     public static final String TEST_NOS_SCENE_KEY = "test_nos_scene_key";
 
     /**
-     *nos 场景配置
+     * nos 场景配置
      */
     private static NosTokenSceneConfig createNosTokenScene() {
         NosTokenSceneConfig nosTokenSceneConfig = new NosTokenSceneConfig();
@@ -122,15 +120,16 @@ class NimSDKOptionConfig {
         return storageRootPath;
     }
 
-    private static void configServerAddress(final SDKOptions options) {
-        String appKey = PrivatizationConfig.getAppKey();
-        if (!TextUtils.isEmpty(appKey)) {
-            options.appKey = appKey;
-        }
+    private static void configServerAddress(final SDKOptions options, Context context) {
 
-        ServerAddresses serverConfig = PrivatizationConfig.getServerAddresses();
+        ServerAddresses serverConfig = DemoPrivatizationConfig.getServerAddresses(context);
         if (serverConfig != null) {
             options.serverConfig = serverConfig;
+        }
+
+        String appKey = DemoPrivatizationConfig.getAppKey(context);
+        if (!TextUtils.isEmpty(appKey)) {
+            options.appKey = appKey;
         }
     }
 
@@ -166,6 +165,8 @@ class NimSDKOptionConfig {
         // 通知铃声的uri字符串
         config.notificationSound = "android.resource://com.netease.nim.demo/raw/msg";
         config.notificationFolded = true;
+//        config.notificationFolded = false;
+        config.downTimeEnableNotification = true;
         // 呼吸灯配置
         config.ledARGB = Color.GREEN;
         config.ledOnMs = 1000;
@@ -215,6 +216,9 @@ class NimSDKOptionConfig {
 
         // fcm 推送，适用于海外用户，不使用fcm请不要配置
         config.fcmCertificateName = "DEMO_FCM_PUSH";
+
+        // vivo推送
+        config.vivoCertificateName = "DEMO_VIVO_PUSH";
 
         return config;
     }

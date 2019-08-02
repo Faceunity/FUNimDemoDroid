@@ -4,15 +4,11 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
-
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.appTargetSdkVersion
         versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
+        versionName "6.0.0_dev_tf_phy-3938b3e9-16d49df-47a70ba"
     }
 
     buildTypes {
@@ -29,11 +25,8 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-
-    compile 'com.android.support:support-compat:26.0.0'
-    compile 'com.android.support:recyclerview-v7:26.0.0'
-    compile 'de.hdodenhof:circleimageview:2.2.0'
-//    compile 'com.faceunity:nama:5.0.0'
-
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:recyclerview-v7:26.1.0'
+    implementation 'de.hdodenhof:circleimageview:3.0.0'
 }

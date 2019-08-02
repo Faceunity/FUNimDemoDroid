@@ -5,8 +5,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.netease.nim.uikit.common.ToastHelper;
-
 import com.netease.nim.demo.R;
 import com.netease.nim.demo.config.preference.Preferences;
 import com.netease.nim.demo.login.LoginActivity;
@@ -23,6 +21,7 @@ import com.netease.nim.demo.session.extension.SnapChatAttachment;
 import com.netease.nim.demo.session.extension.StickerAttachment;
 import com.netease.nim.uikit.business.recent.RecentContactsCallback;
 import com.netease.nim.uikit.business.recent.RecentContactsFragment;
+import com.netease.nim.uikit.common.ToastHelper;
 import com.netease.nim.uikit.common.activity.UI;
 import com.netease.nim.uikit.common.util.log.LogUtil;
 import com.netease.nimlib.sdk.NIMClient;
@@ -88,7 +87,7 @@ public class SessionListFragment extends MainTabFragment {
 
     private void findViews() {
         notifyBar = getView().findViewById(R.id.status_notify_bar);
-        notifyBarText = (TextView) getView().findViewById(R.id.status_desc_label);
+        notifyBarText = getView().findViewById(R.id.status_desc_label);
         notifyBar.setVisibility(View.GONE);
 
         multiportBar = getView().findViewById(R.id.multiport_notify_bar);
@@ -216,6 +215,9 @@ public class SessionListFragment extends MainTabFragment {
                         break;
                     case Team:
                         SessionHelper.startTeamSession(getActivity(), recent.getContactId());
+                        break;
+                    case SUPER_TEAM:
+                        ToastHelper.showToast(getActivity(), "超大群开发者按需实现");
                         break;
                     default:
                         break;

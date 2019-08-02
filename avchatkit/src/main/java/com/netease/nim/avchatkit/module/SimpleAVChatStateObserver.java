@@ -7,6 +7,7 @@ import com.netease.nimlib.sdk.avchat.model.AVChatSessionStats;
 import com.netease.nimlib.sdk.avchat.model.AVChatVideoFrame;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by winnie on 2017/12/8.
@@ -40,6 +41,56 @@ public class SimpleAVChatStateObserver implements AVChatStateObserver {
 
     @Override
     public void onAudioMixingEvent(int event) {
+
+    }
+
+    @Override
+    public void onAudioEffectPreload(int effectId, int result) {
+
+    }
+
+    @Override
+    public void onAudioEffectPlayEvent(int effectId, int event) {
+
+    }
+
+    @Override
+    public void onPublishVideoResult(int result) {
+
+    }
+
+    @Override
+    public void onUnpublishVideoResult(int result) {
+
+    }
+
+    @Override
+    public void onSubscribeVideoResult(String account, int result) {
+
+    }
+
+    @Override
+    public void onUnsubscribeVideoResult(String account, int result) {
+
+    }
+
+    @Override
+    public void onRemotePublishVideo(String account) {
+
+    }
+
+    @Override
+    public void onRemoteUnpublishVideo(String account) {
+
+    }
+
+    @Override
+    public void onUnsubscribeAudioResult(int result) {
+
+    }
+
+    @Override
+    public void onSubscribeAudioResult(int result) {
 
     }
 
@@ -124,9 +175,10 @@ public class SimpleAVChatStateObserver implements AVChatStateObserver {
     }
 
     @Override
-    public void onAudioDeviceChanged(int device) {
+    public void onAudioDeviceChanged(int device, Set<Integer> set, boolean shouldSelect) {
 
     }
+
 
     @Override
     public void onReportSpeaker(Map<String, Integer> speakers, int mixedEnergy) {

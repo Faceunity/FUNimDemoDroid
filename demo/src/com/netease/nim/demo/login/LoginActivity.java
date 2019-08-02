@@ -17,6 +17,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.widget.TextView;
 
+import com.netease.nim.demo.DemoPrivatizationConfig;
 import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.demo.DemoCache;
@@ -224,6 +225,8 @@ public class LoginActivity extends UI implements OnKeyListener {
         loginLayout = findView(R.id.login_layout);
         registerLayout = findView(R.id.register_layout);
         switchModeBtn = findView(R.id.register_login_tip);
+
+        switchModeBtn.setVisibility(DemoPrivatizationConfig.isPrivateDisable(this) ? View.VISIBLE : View.GONE);
 
         switchModeBtn.setOnClickListener(new OnClickListener() {
             @Override

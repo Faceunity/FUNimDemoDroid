@@ -121,7 +121,9 @@ public class MainActivity extends UI implements ViewPager.OnPageChangeListener, 
         setToolBar(R.id.toolbar, R.string.app_name, R.drawable.actionbar_dark_logo);
         setTitle(R.string.app_name);
         isFirstIn = true;
-        if (parseIntent()) {
+
+        //不保留后台活动，从厂商推送进聊天页面，会无法退出聊天页面
+        if (savedInstanceState == null && parseIntent()) {
             return;
         }
         init();

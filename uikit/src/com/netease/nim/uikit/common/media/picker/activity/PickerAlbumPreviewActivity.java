@@ -13,13 +13,13 @@ import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.api.wrapper.NimToolBarOptions;
 import com.netease.nim.uikit.business.session.constant.Extras;
 import com.netease.nim.uikit.business.session.constant.RequestCode;
-import com.netease.nim.uikit.common.ToastHelper;
 import com.netease.nim.uikit.common.activity.ToolBarOptions;
 import com.netease.nim.uikit.common.activity.UI;
 import com.netease.nim.uikit.common.media.picker.adapter.PickerPreviewPagerAdapter;
@@ -122,25 +122,25 @@ public class PickerAlbumPreviewActivity extends UI implements OnClickListener, O
     }
 
     private void initActionBar() {
-        previewSelectBtn = (ImageButton) findViewById(R.id.picker_image_preview_photos_select);
+        previewSelectBtn = findViewById(R.id.picker_image_preview_photos_select);
         previewSelectBtn.setOnClickListener(this);
     }
 
     private void initUI() {
-        previewOperationBar = (LinearLayout) findViewById(R.id.picker_image_preview_operator_bar);
-        originalImage = (ImageButton) findViewById(R.id.picker_image_preview_orignal_image);
+        previewOperationBar = findViewById(R.id.picker_image_preview_operator_bar);
+        originalImage = findViewById(R.id.picker_image_preview_orignal_image);
         originalImage.setOnClickListener(this);
-        originalImageSizeTip = (TextView) findViewById(R.id.picker_image_preview_orignal_image_tip);
+        originalImageSizeTip = findViewById(R.id.picker_image_preview_orignal_image_tip);
         if (!isSupportOriginal) {
             originalImage.setVisibility(View.INVISIBLE);
             originalImageSizeTip.setVisibility(View.INVISIBLE);
         }
-        previewSendBtn = (TextView) findViewById(R.id.picker_image_preview_send);
+        previewSendBtn = findViewById(R.id.picker_image_preview_send);
         previewSendBtn.setOnClickListener(this);
         updateSelectBtnStatus();
         updateOriImageSizeTip(isSendOriginalImage);
 
-        imageViewPager = (ViewPager) findViewById(R.id.picker_image_preview_viewpager);
+        imageViewPager = findViewById(R.id.picker_image_preview_viewpager);
         imageViewPager.setOnPageChangeListener(this);
         imageViewPager.setOffscreenPageLimit(2);
         imageViewPagerAdapter = new PickerPreviewPagerAdapter(this, photoLists, getLayoutInflater(),
@@ -185,7 +185,7 @@ public class PickerAlbumPreviewActivity extends UI implements OnClickListener, O
             currentPosition = position;
         }
 
-        LinearLayout currentLayout = (LinearLayout) imageViewPager.findViewWithTag(position);
+        LinearLayout currentLayout = imageViewPager.findViewWithTag(position);
         if (currentLayout == null) {
             Handler mHandler = new Handler();
             mHandler.postDelayed(new Runnable() {

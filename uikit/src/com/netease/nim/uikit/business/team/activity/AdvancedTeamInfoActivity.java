@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.TextView;
-import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.api.NimUIKit;
@@ -23,7 +22,6 @@ import com.netease.nim.uikit.api.wrapper.NimToolBarOptions;
 import com.netease.nim.uikit.business.contact.core.item.ContactIdFilter;
 import com.netease.nim.uikit.business.contact.selector.activity.ContactSelectActivity;
 import com.netease.nim.uikit.business.session.actions.PickImageAction;
-import com.netease.nim.uikit.business.session.constant.Extras;
 import com.netease.nim.uikit.business.team.adapter.TeamMemberAdapter;
 import com.netease.nim.uikit.business.team.adapter.TeamMemberAdapter.TeamMemberItem;
 import com.netease.nim.uikit.business.team.helper.AnnouncementHelper;
@@ -31,11 +29,14 @@ import com.netease.nim.uikit.business.team.helper.TeamHelper;
 import com.netease.nim.uikit.business.team.model.Announcement;
 import com.netease.nim.uikit.business.team.ui.TeamInfoGridView;
 import com.netease.nim.uikit.business.team.viewholder.TeamMemberHolder;
+import com.netease.nim.uikit.common.ToastHelper;
 import com.netease.nim.uikit.common.activity.ToolBarOptions;
 import com.netease.nim.uikit.common.activity.UI;
 import com.netease.nim.uikit.common.adapter.TAdapterDelegate;
 import com.netease.nim.uikit.common.adapter.TViewHolder;
-import com.netease.nim.uikit.common.media.picker.PickImageHelper;
+import com.netease.nim.uikit.common.media.imagepicker.Constants;
+import com.netease.nim.uikit.common.media.imagepicker.ImagePickerLauncher;
+import com.netease.nim.uikit.common.media.model.GLImage;
 import com.netease.nim.uikit.common.ui.dialog.DialogMaker;
 import com.netease.nim.uikit.common.ui.dialog.MenuDialog;
 import com.netease.nim.uikit.common.ui.imageview.HeadImageView;
@@ -230,12 +231,24 @@ public class AdvancedTeamInfoActivity extends UI implements
                 }
                 break;
             case REQUEST_PICK_ICON:
-                String path = data.getStringExtra(Extras.EXTRA_FILE_PATH);
-                updateTeamIcon(path);
+                onPicked(data);
+//
                 break;
             default:
                 break;
         }
+    }
+
+    private void onPicked(Intent data) {
+        if (data == null) {
+            return;
+        }
+        ArrayList<GLImage> images = (ArrayList<GLImage>) data.getSerializableExtra(Constants.EXTRA_RESULT_ITEMS);
+        if (images == null || images.isEmpty()) {
+            return;
+        }
+        GLImage image = images.get(0);
+        updateTeamIcon(image.getPath());
     }
 
     @Override
@@ -352,14 +365,7 @@ public class AdvancedTeamInfoActivity extends UI implements
      * 打开图片选择器
      */
     private void showSelector(int titleId, final int requestCode) {
-        PickImageHelper.PickImageOption option = new PickImageHelper.PickImageOption();
-        option.titleResId = titleId;
-        option.multiSelect = false;
-        option.crop = true;
-        option.cropOutputImageWidth = 720;
-        option.cropOutputImageHeight = 720;
-
-        PickImageHelper.pickImage(AdvancedTeamInfoActivity.this, requestCode, option);
+        ImagePickerLauncher.pickImage(AdvancedTeamInfoActivity.this, requestCode, titleId);
     }
 
     /**
@@ -817,7 +823,8 @@ public class AdvancedTeamInfoActivity extends UI implements
      * @param accounts 邀请帐号
      */
     private void inviteMembers(ArrayList<String> accounts) {
-        NIMClient.getService(TeamService.class).addMembers(teamId, accounts).setCallback(new RequestCallback<List<String>>() {
+//        NIMClient.getService(TeamService.class).addMembers(teamId, accounts).setCallback(new RequestCallback<List<String>>() {
+        NIMClient.getService(TeamService.class).addMembersEx(teamId, accounts, "邀请附言", "邀请扩展字段").setCallback(new RequestCallback<List<String>>() {
             @Override
             public void onSuccess(List<String> failedAccounts) {
                 if (failedAccounts == null || failedAccounts.isEmpty()) {

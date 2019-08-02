@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-          package="com.netease.nim.demo"
-          android:installLocation="auto">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.netease.nim.demo"
+    android:installLocation="auto">
 
     <!-- 加入应用需要的权限 -->
     <!-- 网络相关 -->
@@ -38,6 +38,10 @@
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+
+    <!-- 8.0 系统上需要-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <!-- SDK权限申明, 第三方APP接入时，请将com.netease.nim.demo替换为自己的包名 -->
     <!-- 和下面的uses-permission一起加入到你的AndroidManifest文件中。 -->
     <permission
@@ -58,14 +62,16 @@
 
     <!-- 兼容flyme5.0以下版本，魅族内部集成pushSDK必填，不然无法收到消息-->
     <uses-permission android:name="com.meizu.flyme.push.permission.RECEIVE" />
-    <permission android:name="com.netease.nim.demo.push.permission.MESSAGE"
-                android:protectionLevel="signature"/>
+    <permission
+        android:name="com.netease.nim.demo.push.permission.MESSAGE"
+        android:protectionLevel="signature" />
     <uses-permission android:name="com.netease.nim.demo.push.permission.MESSAGE" />
     <!--  兼容flyme3.0配置权限-->
     <uses-permission android:name="com.meizu.c2dm.permission.RECEIVE" />
-    <permission android:name="com.netease.nim.demo.permission.C2D_MESSAGE"
-                android:protectionLevel="signature" />
-    <uses-permission android:name="com.netease.nim.demo.permission.C2D_MESSAGE"/>
+    <permission
+        android:name="com.netease.nim.demo.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="com.netease.nim.demo.permission.C2D_MESSAGE" />
 
     <application
         android:name=".NimApplication"
@@ -99,7 +105,7 @@
 
         <!-- 导航页 -->
         <activity
-            android:name=".main.activity.WelcomeActivity"
+            android:name=".NeedFaceUnityAcct"
             android:configChanges="keyboardHidden|orientation"
             android:hardwareAccelerated="true"
             android:label="@string/app_name"
@@ -113,6 +119,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <!-- 导航页 -->
+        <activity
+            android:name=".main.activity.WelcomeActivity"
+            android:configChanges="keyboardHidden|orientation"
+            android:hardwareAccelerated="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:theme="@style/WelcomeEntranceActionBarTheme"
+            android:windowSoftInputMode="adjustPan">
         </activity>
 
         <!-- 主界面 -->
@@ -337,19 +355,38 @@
             android:theme="@style/AppTheme.NoActionBar" />
 
         <!-- 已读回执 -->
-        <activity android:name=".session.activity.SendAckMsgActivity"
-                  android:screenOrientation="portrait"
-                  android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".session.activity.SendAckMsgActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <!-- 已读回执详情 -->
-        <activity android:name=".session.activity.AckMsgInfoActivity"
-                  android:screenOrientation="portrait"
-                  android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".session.activity.AckMsgInfoActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
             android:name=".contact.activity.RobotProfileActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
+
+
+        <activity
+            android:name=".main.activity.PrivatizationConfigActivity"
+            android:configChanges="orientation"
+            android:label="@string/privatization_config"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustUnspecified|stateHidden" />
+        <activity
+            android:name=".main.activity.MsgMigrationActivity"
+            android:configChanges="orientation"
+            android:label="@string/local_db_migration"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustUnspecified|stateHidden" />
+
 
         <!-- 声明云信后台服务 -->
         <service
@@ -520,6 +557,7 @@
                 <!-- 兼容低版本Flyme3推送服务配置 -->
                 <action android:name="com.meizu.c2dm.intent.REGISTRATION" />
                 <action android:name="com.meizu.c2dm.intent.RECEIVE" />
+
                 <category android:name="com.netease.nim.demo" />
             </intent-filter>
         </receiver>
@@ -527,6 +565,29 @@
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="c3b7877640734c92138bf0a8becce1df29155681" />
+
+        <!--Vivo推送配置项-->
+        <service
+            android:name="com.vivo.push.sdk.service.CommandClientService"
+            android:exported="true"/>
+        <activity
+            android:name="com.vivo.push.sdk.LinkProxyClientActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+        <meta-data
+            android:name="com.vivo.push.api_key"
+            android:value="18374205-eb53-428c-bad2-7a75712f6487"/>
+        <meta-data
+            android:name="com.vivo.push.app_id"
+            android:value="11425"/>
+
+        <receiver android:name="com.netease.nimlib.mixpush.vivo.VivoPushReceiver">
+            <intent-filter>
+                <!-- 接收 push 消息 -->
+                <action android:name="com.vivo.pushclient.action.RECEIVE"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

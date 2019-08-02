@@ -148,7 +148,7 @@ public class ChatRoomMessageFragment extends TFragment implements ModuleProxy {
 
         if (NimUIKitImpl.getOptions().aitEnable && NimUIKitImpl.getOptions().aitChatRoomRobot) {
             if (aitManager == null) {
-                aitManager = new AitManager(getContext(), null, true);
+                aitManager = new AitManager(getContext(), null, false);
             }
             inputPanel.addAitTextWatcher(aitManager);
             aitManager.setTextChangeListener(inputPanel);

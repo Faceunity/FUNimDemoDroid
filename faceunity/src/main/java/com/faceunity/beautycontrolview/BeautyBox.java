@@ -51,8 +51,8 @@ public class BeautyBox extends LinearLayout implements Checkable {
 
         LayoutInflater.from(context).inflate(R.layout.layout_beauty_box, this);
 
-        boxImg = findViewById(R.id.beauty_box_img);
-        boxText = findViewById(R.id.beauty_box_text);
+        boxImg = (ImageView) findViewById(R.id.beauty_box_img);
+        boxText = (TextView) findViewById(R.id.beauty_box_text);
 
         final TypedArray a = context.obtainStyledAttributes(
                 attrs, R.styleable.BeautyBox, defStyleAttr, 0);

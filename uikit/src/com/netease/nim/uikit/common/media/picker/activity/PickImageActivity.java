@@ -18,7 +18,7 @@ import com.netease.nim.uikit.api.wrapper.NimToolBarOptions;
 import com.netease.nim.uikit.business.session.constant.Extras;
 import com.netease.nim.uikit.common.activity.ToolBarOptions;
 import com.netease.nim.uikit.common.activity.UI;
-import com.netease.nim.uikit.common.media.picker.model.GenericFileProvider;
+import com.netease.nim.uikit.common.media.model.GenericFileProvider;
 import com.netease.nim.uikit.common.media.picker.model.PhotoInfo;
 import com.netease.nim.uikit.common.media.picker.model.PickerContract;
 

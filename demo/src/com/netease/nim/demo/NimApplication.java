@@ -44,6 +44,8 @@ import io.fabric.sdk.android.Fabric;
 
 public class NimApplication extends Application {
 
+    private static NimApplication nimApplication;
+
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(newBase);
@@ -58,6 +60,7 @@ public class NimApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        nimApplication = this;
 
         // 内存泄漏检测
         if (!LeakCanary.isInAnalyzerProcess(this)) {
@@ -194,5 +197,9 @@ public class NimApplication extends Application {
         };
         RTSKit.init(rtsOptions);
         RTSHelper.init();
+    }
+
+    public static NimApplication getInstance() {
+        return nimApplication;
     }
 }

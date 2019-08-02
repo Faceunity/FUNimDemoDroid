@@ -29,8 +29,8 @@ public class DialogMaker {
         if (dialog != null && dialog.getContext() != context) {
             // maybe existing dialog is running in a destroyed activity cotext we should recreate one
             dismissProgressDialog();
-            dialog = null;
             LogUtil.e("dialog", "there is a leaked window here,orign context: " + dialog.getContext() + " now: " + context);
+            dialog = null;
         }
 
         if (dialog == null) {

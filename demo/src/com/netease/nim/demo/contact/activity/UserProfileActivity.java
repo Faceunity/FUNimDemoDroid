@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.netease.nim.demo.config.preference.UserPreferences;
 import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.demo.DemoCache;
@@ -606,7 +607,8 @@ public class UserProfileActivity extends UI {
                     @Override
                     public void doOkAction() {
                         DialogMaker.showProgressDialog(UserProfileActivity.this, "", true);
-                        NIMClient.getService(FriendService.class).deleteFriend(account).setCallback(new RequestCallback<Void>() {
+                        boolean deleteAlias = UserPreferences.isDeleteFriendAndDeleteAlias();
+                        NIMClient.getService(FriendService.class).deleteFriend(account, deleteAlias).setCallback(new RequestCallback<Void>() {
                             @Override
                             public void onSuccess(Void param) {
                                 DialogMaker.dismissProgressDialog();

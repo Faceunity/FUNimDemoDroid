@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class FileBrowserActivity extends UI implements TAdapterDelegate {
     // constant
-    private static final String ROOT_PATH = Environment.getExternalStorageDirectory().getPath() + "/";
+    private static final String ROOT_PATH = Environment.getExternalStorageDirectory().getPath();
     public static final String EXTRA_DATA_PATH = "EXTRA_DATA_PATH";
 
     // data
@@ -58,7 +58,7 @@ public class FileBrowserActivity extends UI implements TAdapterDelegate {
     }
 
     private void findViews() {
-        fileListView = (ListView) findViewById(R.id.file_list);
+        fileListView = findViewById(R.id.file_list);
     }
 
     /**
@@ -73,10 +73,10 @@ public class FileBrowserActivity extends UI implements TAdapterDelegate {
         File[] files = file.listFiles();
 
         //如果当前目录不是根目录
-        if (ROOT_PATH.equals(path)) {
+        if (!ROOT_PATH.equals(path)) {
             names.add("@1");
             paths.add(ROOT_PATH);
-        } else {
+
             names.add("@2");
             paths.add(file.getParent());
         }

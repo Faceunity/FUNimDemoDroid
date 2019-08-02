@@ -13,7 +13,7 @@ import com.netease.nim.avchatkit.R;
 import com.netease.nim.avchatkit.common.recyclerview.adapter.BaseMultiItemFetchLoadAdapter;
 import com.netease.nim.avchatkit.common.recyclerview.holder.BaseViewHolder;
 import com.netease.nim.avchatkit.teamavchat.module.TeamAVChatItem;
-import com.netease.nimlib.sdk.avchat.model.AVChatTextureViewRenderer;
+import com.netease.nimlib.sdk.avchat.video.AVChatTextureViewRenderer;
 import com.netease.nimlib.sdk.nos.model.NosThumbParam;
 import com.netease.nimlib.sdk.nos.util.NosThumbImageUtil;
 import com.netease.nimlib.sdk.uinfo.model.UserInfo;

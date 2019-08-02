@@ -10,10 +10,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.faceunity.beautycontrolview.BeautyControlView;
 import com.faceunity.beautycontrolview.FURenderer;
+import com.faceunity.beautycontrolview.FilterEnum;
+import com.faceunity.beautycontrolview.entity.FaceMakeup;
 import com.netease.nim.avchatkit.AVChatKit;
 import com.netease.nim.avchatkit.AVChatProfile;
 import com.netease.nim.avchatkit.R;
@@ -22,6 +26,7 @@ import com.netease.nim.avchatkit.common.log.LogUtil;
 import com.netease.nim.avchatkit.constant.AVChatExitCode;
 import com.netease.nim.avchatkit.controll.AVChatController;
 import com.netease.nim.avchatkit.controll.AVChatSoundPlayer;
+import com.netease.nim.avchatkit.entity.FaceMakeupEnum;
 import com.netease.nim.avchatkit.module.AVChatTimeoutObserver;
 import com.netease.nim.avchatkit.module.AVSwitchListener;
 import com.netease.nim.avchatkit.module.SimpleAVChatStateObserver;
@@ -29,6 +34,7 @@ import com.netease.nim.avchatkit.notification.AVChatNotification;
 import com.netease.nim.avchatkit.receiver.PhoneCallStateObserver;
 import com.netease.nim.avchatkit.ui.AVChatAudioUI;
 import com.netease.nim.avchatkit.ui.AVChatVideoUI;
+import com.netease.nim.avchatkit.utils.PreferenceUtil;
 import com.netease.nimlib.sdk.NIMClient;
 import com.netease.nimlib.sdk.Observer;
 import com.netease.nimlib.sdk.StatusCode;
@@ -46,6 +52,8 @@ import com.netease.nimlib.sdk.avchat.model.AVChatControlEvent;
 import com.netease.nimlib.sdk.avchat.model.AVChatData;
 import com.netease.nimlib.sdk.avchat.model.AVChatOnlineAckEvent;
 import com.netease.nimlib.sdk.avchat.model.AVChatVideoFrame;
+
+import java.util.List;
 
 /**
  * 音视频主界面
@@ -96,11 +104,11 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
     private AVChatAudioUI avChatAudioUI; // 音频界面
     private AVChatVideoUI avChatVideoUI; // 视频界面
 
-    // face unity
     private FURenderer mFURenderer;
-
-    private BeautyControlView mFaceunityControlView;
-
+    private String isOpen;
+    private ToggleButton tb_make_up;
+    private List<FaceMakeup> faceMakeupList;
+    private BeautyControlView beautyControlView;
     // notification
     private AVChatNotification notifier;
 
@@ -159,11 +167,8 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         notifier = new AVChatNotification(this);
         notifier.init(receiverId != null ? receiverId : avChatData.getAccount(), displayName);
 
-        mFURenderer = new FURenderer.Builder(this).createEGLContext(true).build();
-        mFURenderer.loadItems();
-
-        mFaceunityControlView = (BeautyControlView) findViewById(R.id.faceunity_control);
-        mFaceunityControlView.setOnFaceUnityControlListener(mFURenderer);
+        // face unity
+        initFaceU();
     }
 
     @Override
@@ -219,7 +224,7 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         registerObserves(false);
         AVChatProfile.getInstance().setAVChatting(false);
         cancelCallingNotifier();
-        mFURenderer.destroyItems();
+        destroyFaceU();
         needFinish = true;
     }
 
@@ -256,7 +261,7 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
 
     private void initData() {
         avChatController = new AVChatController(this, avChatData);
-        avChatAudioUI = new AVChatAudioUI(this, root, avChatData, displayName, avChatController, this);
+        avChatAudioUI = new AVChatAudioUI(this, root, displayName, avChatController, this);
         avChatVideoUI = new AVChatVideoUI(this, root, avChatData, displayName, avChatController, this, this);
     }
 
@@ -406,7 +411,6 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         @Override
         public void onDeviceEvent(int code, String desc) {
             super.onDeviceEvent(code, desc);
-
             synchronized (lock) {
                 if (code == AVChatDeviceEvent.VIDEO_CAMERA_SWITCH_OK) {
                     isSwitching = true;
@@ -417,13 +421,17 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
             }
         }
 
+
         @Override
         public boolean onVideoFrameFilter(AVChatVideoFrame frame, boolean maybeDualInput) {
-            synchronized (lock) {
-                if (isSwitching) {
-                    return true;
+            if (mFURenderer != null) {
+                synchronized (lock) {
+                    if (isSwitching) {
+                        return true;
+                    }
+                    mFURenderer.onDrawFrame(frame.data, frame.width,
+                            frame.height, cameraFacing);
                 }
-                mFURenderer.drawFrame(frame.data, frame.width, frame.height, frame.rotation, cameraFacing);
             }
 
             return true;
@@ -625,7 +633,8 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         avChatVideoUI.onVideoToAudio();
         // 判断是否静音，扬声器是否开启，对界面相应控件进行显隐处理。
         avChatAudioUI.onVideoToAudio(AVChatManager.getInstance().isLocalAudioMuted(),
-                AVChatManager.getInstance().speakerEnabled());
+                AVChatManager.getInstance().speakerEnabled(),
+                avChatData != null ? avChatData.getAccount() : receiverId);
     }
 
     @Override
@@ -687,13 +696,48 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         super.finish();
     }
 
-    @Override
-    public void onTouch() {
-//        if (faceU == null) {
-//            return;
-//        }
-//
-//        faceU.showOrHideLayout();
+    /**
+     * ******************************** face unity 接入 ********************************
+     */
+
+    private void initFaceU() {
+        isOpen = PreferenceUtil.getString(this, PreferenceUtil.KEY_FACEUNITY_ISON);
+        tb_make_up = root.findViewById(R.id.tb_make_up);
+        beautyControlView = (BeautyControlView) findViewById(R.id.faceunity_control);
+
+        if (isOpen.equals("false")) {
+            tb_make_up.setVisibility(View.GONE);
+            beautyControlView.setVisibility(View.GONE);
+            return;
+        }
+
+        faceMakeupList = FaceMakeupEnum.getBeautyFaceMakeup();
+        tb_make_up.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    tb_make_up.setChecked(true);
+                    //需要开美颜
+                    mFURenderer.onFilterLevelSelected(1.0f);
+                    mFURenderer.onFilterSelected(FilterEnum.fennen3.filter());
+                    mFURenderer.onLightMakeupBatchSelected(faceMakeupList.get(1).getMakeupItems());
+                } else {
+                    tb_make_up.setChecked(false);
+                    mFURenderer.onFilterSelected(FilterEnum.nature.filter());
+                    mFURenderer.onLightMakeupBatchSelected(faceMakeupList.get(0).getMakeupItems());
+                }
+            }
+        });
+
+        mFURenderer = new FURenderer.Builder(this).createEGLContext(true).build();
+        mFURenderer.loadItems();
+
+        beautyControlView.setOnFaceUnityControlListener(mFURenderer);
+    }
+
+    private void destroyFaceU() {
+        if (mFURenderer != null)
+            mFURenderer.destroyItems();
     }
 
     // 主动挂断
@@ -704,8 +748,13 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
 
     // 被对方挂断
     private void hangUpByOther(int exitCode) {
-        releaseVideo();
-        avChatController.onHangUp(exitCode);
+        if (exitCode == AVChatExitCode.PEER_BUSY) {
+            avChatController.hangUp(AVChatExitCode.HANGUP);
+            finish();
+        } else {
+            releaseVideo();
+            avChatController.onHangUp(exitCode);
+        }
     }
 
     private void releaseVideo() {
@@ -714,4 +763,8 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         }
     }
 
+    @Override
+    public void onTouch() {
+
+    }
 }

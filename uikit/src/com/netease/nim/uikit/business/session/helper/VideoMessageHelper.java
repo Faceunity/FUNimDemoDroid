@@ -8,11 +8,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.text.TextUtils;
-import android.util.Log;
-import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.business.session.activity.CaptureVideoActivity;
+import com.netease.nim.uikit.common.ToastHelper;
 import com.netease.nim.uikit.common.ui.dialog.CustomAlertDialog;
 import com.netease.nim.uikit.common.util.C;
 import com.netease.nim.uikit.common.util.file.AttachmentStore;
@@ -75,15 +74,12 @@ public class VideoMessageHelper {
      * 拍摄视频
      */
     protected void chooseVideoFromCamera() {
-        if (!StorageUtil.hasEnoughSpaceForWrite(activity,
-                StorageType.TYPE_VIDEO, true)) {
+        if (!StorageUtil.hasEnoughSpaceForWrite(activity, StorageType.TYPE_VIDEO, true)) {
             return;
         }
-        videoFilePath = StorageUtil.getWritePath(
-                activity, StringUtil.get36UUID()
-                        + C.FileSuffix.MP4, StorageType.TYPE_TEMP);
+        videoFilePath = StorageUtil.getWritePath(activity, StringUtil.get36UUID() + C.FileSuffix.MP4,
+                                                 StorageType.TYPE_TEMP);
         videoFile = new File(videoFilePath);
-
         // 启动视频录制
         CaptureVideoActivity.start(activity, videoFilePath, captureRequestCode);
     }

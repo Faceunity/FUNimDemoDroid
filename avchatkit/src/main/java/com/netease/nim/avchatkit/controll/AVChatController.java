@@ -11,6 +11,7 @@ import com.netease.nim.avchatkit.R;
 import com.netease.nim.avchatkit.common.log.LogUtil;
 import com.netease.nim.avchatkit.common.widgets.MultiSelectDialog;
 import com.netease.nim.avchatkit.config.AVChatConfigs;
+import com.netease.nim.avchatkit.config.AVPrivatizationConfig;
 import com.netease.nim.avchatkit.constant.AVChatExitCode;
 import com.netease.nim.avchatkit.constant.CallStateEnum;
 import com.netease.nim.avchatkit.module.AVChatControllerCallback;
@@ -20,11 +21,11 @@ import com.netease.nimlib.sdk.avchat.AVChatCallback;
 import com.netease.nimlib.sdk.avchat.AVChatManager;
 import com.netease.nimlib.sdk.avchat.constant.AVChatControlCommand;
 import com.netease.nimlib.sdk.avchat.constant.AVChatType;
-import com.netease.nimlib.sdk.avchat.model.AVChatCameraCapturer;
 import com.netease.nimlib.sdk.avchat.model.AVChatData;
 import com.netease.nimlib.sdk.avchat.model.AVChatNotifyOption;
 import com.netease.nimlib.sdk.avchat.model.AVChatParameters;
-import com.netease.nimlib.sdk.avchat.model.AVChatVideoCapturerFactory;
+import com.netease.nimlib.sdk.avchat.video.AVChatCameraCapturer;
+import com.netease.nimlib.sdk.avchat.video.AVChatVideoCapturerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -103,12 +104,12 @@ public class AVChatController {
 
     public void doCalling(String account, final AVChatType avChatType, final AVChatControllerCallback<AVChatData> callback) {
 
-        AVChatManager.getInstance().enableRtc();
+        AVChatManager.getInstance().enableRtc(AVPrivatizationConfig.getServerAddresses(context));
         AVChatManager.getInstance().setParameters(avChatConfigs.getAvChatParameters());
         AVChatManager.getInstance().setParameter(AVChatParameters.KEY_VIDEO_FRAME_FILTER, true);
 
         if (mVideoCapturer == null) {
-            mVideoCapturer = AVChatVideoCapturerFactory.createCameraCapturer();
+            mVideoCapturer = AVChatVideoCapturerFactory.createCameraCapturer(true);
             AVChatManager.getInstance().setupVideoCapturer(mVideoCapturer);
         }
 
@@ -152,11 +153,11 @@ public class AVChatController {
 
     public void receive(final AVChatType avChatType, final AVChatControllerCallback<Void> callback) {
 
-        AVChatManager.getInstance().enableRtc();
+        AVChatManager.getInstance().enableRtc(AVPrivatizationConfig.getServerAddresses(context));
         AVChatManager.getInstance().setParameters(avChatConfigs.getAvChatParameters());
         AVChatManager.getInstance().setParameter(AVChatParameters.KEY_VIDEO_FRAME_FILTER, true);
         if (mVideoCapturer == null) {
-            mVideoCapturer = AVChatVideoCapturerFactory.createCameraCapturer();
+            mVideoCapturer = AVChatVideoCapturerFactory.createCameraCapturer(true);
             AVChatManager.getInstance().setupVideoCapturer(mVideoCapturer);
         }
         if (avChatType == AVChatType.VIDEO) {

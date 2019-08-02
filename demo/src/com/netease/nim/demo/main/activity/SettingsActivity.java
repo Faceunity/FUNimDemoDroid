@@ -9,8 +9,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.netease.nim.uikit.common.ToastHelper;
-
 import com.netease.nim.avchatkit.AVChatKit;
 import com.netease.nim.demo.DemoCache;
 import com.netease.nim.demo.R;
@@ -23,6 +21,7 @@ import com.netease.nim.demo.main.model.SettingType;
 import com.netease.nim.demo.redpacket.NIMRedPacketClient;
 import com.netease.nim.uikit.api.NimUIKit;
 import com.netease.nim.uikit.api.wrapper.NimToolBarOptions;
+import com.netease.nim.uikit.common.ToastHelper;
 import com.netease.nim.uikit.common.activity.ToolBarOptions;
 import com.netease.nim.uikit.common.activity.UI;
 import com.netease.nimlib.sdk.NIMClient;
@@ -77,9 +76,16 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
     private static final int TAG_PUSH_SHOW_NO_DETAIL = 24; // 推送消息不展示详情
 
     private static final int TAG_VIBRATE = 25; // 推送消息不展示详情
+
+    private static final int TAG_PRIVATE_CONFIG = 26; // 私有化开关
+    private static final int TAG_MSG_MIGRATION = 27; // 本地消息迁移
+
+    private static final int TAG_DELETE_FRIEND_ALIAS = 28; // 本地消息迁移
+
+
     ListView listView;
     SettingsAdapter adapter;
-    private List<SettingTemplate> items = new ArrayList<SettingTemplate>();
+    private List<SettingTemplate> items = new ArrayList<>();
     private String noDisturbTime;
     private SettingTemplate disturbItem;
     private SettingTemplate clearIndexItem;
@@ -137,7 +143,7 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
 
     private void initUI() {
         initItems();
-        listView = (ListView) findViewById(R.id.settings_listview);
+        listView = findViewById(R.id.settings_listview);
         View footer = LayoutInflater.from(this).inflate(R.layout.settings_logout_footer, null);
         listView.addFooterView(footer);
 
@@ -229,9 +235,15 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
             items.add(new SettingTemplate(TAG_JRMFWAllET, "我的钱包"));
             items.add(SettingTemplate.makeSeperator());
         }
+        items.add(new SettingTemplate(TAG_PRIVATE_CONFIG, getString(R.string.setting_private_config)));
 
+        items.add(SettingTemplate.makeSeperator());
+        items.add(new SettingTemplate(TAG_MSG_MIGRATION, getString(R.string.local_db_migration)));
+        items.add(SettingTemplate.makeSeperator());
         items.add(new SettingTemplate(TAG_ABOUT, getString(R.string.setting_about)));
-
+        items.add(SettingTemplate.makeSeperator());
+        items.add(new SettingTemplate(TAG_DELETE_FRIEND_ALIAS, getString(R.string.delete_friend_is_delete_alias), SettingType.TYPE_TOGGLE,
+                                      UserPreferences.isDeleteFriendAndDeleteAlias()));
     }
 
     private void onListItemClick(SettingTemplate item) {
@@ -271,6 +283,14 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
                 break;
             case TAG_JRMFWAllET:
                 NIMRedPacketClient.startWalletActivity(this);
+                break;
+
+            case TAG_PRIVATE_CONFIG:
+                startActivity(new Intent(this, PrivatizationConfigActivity.class));
+                break;
+
+            case TAG_MSG_MIGRATION:
+                startActivity(new Intent(this, MsgMigrationActivity.class));
                 break;
             default:
                 break;
@@ -437,10 +457,17 @@ public class SettingsActivity extends UI implements SettingsAdapter.SwitchChange
             case TAG_PUSH_SHOW_NO_DETAIL:
                 updateShowPushNoDetail(checkState);
                 break;
+            case TAG_DELETE_FRIEND_ALIAS:
+                updateDeleteFriendAndAlias(checkState);
+                break;
             default:
                 break;
         }
         item.setChecked(checkState);
+    }
+
+    private void updateDeleteFriendAndAlias(boolean checkState) {
+        UserPreferences.setDeleteFriendAndDeleteAlias(checkState);
     }
 
     private void setMessageNotify(final boolean checkState) {

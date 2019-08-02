@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.ImageView;
@@ -51,6 +52,7 @@ import com.netease.nimlib.sdk.msg.MessageBuilder;
 import com.netease.nimlib.sdk.msg.MsgService;
 import com.netease.nimlib.sdk.msg.MsgServiceObserve;
 import com.netease.nimlib.sdk.msg.attachment.FileAttachment;
+import com.netease.nimlib.sdk.msg.attachment.MsgAttachment;
 import com.netease.nimlib.sdk.msg.constant.AttachStatusEnum;
 import com.netease.nimlib.sdk.msg.constant.MsgDirectionEnum;
 import com.netease.nimlib.sdk.msg.constant.MsgStatusEnum;
@@ -71,15 +73,16 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 /**
  * 基于RecyclerView的消息收发模块
  * Created by huangjun on 2016/12/27.
  */
 public class MessageListPanelEx {
+    private final static String TAG = "MessageListPanelEx";
 
     private static final int REQUEST_CODE_FORWARD_PERSON = 0x01;
     private static final int REQUEST_CODE_FORWARD_TEAM = 0x02;
@@ -328,6 +331,9 @@ public class MessageListPanelEx {
 
     // 发送消息后，更新本地消息列表
     public void onMsgSend(IMMessage message) {
+        if (!container.account.equals(message.getSessionId())) {
+            return;
+        }
         List<IMMessage> addedListItems = new ArrayList<>(1);
         addedListItems.add(message);
         adapter.updateShowTimeItem(addedListItems, false, true);
@@ -388,6 +394,8 @@ public class MessageListPanelEx {
                 return;
             }
             IMMessage message = notification.getMessage();
+            // 获取通知类型： 1表示是离线，2表示是漫游 ， 默认 0
+            Log.i(TAG, "notification type = " + notification.getNotificationType());
 
             if (!container.account.equals(message.getSessionId())) {
                 return;
@@ -441,7 +449,8 @@ public class MessageListPanelEx {
         @Override
         public void onClearMessages(String account) {
             items.clear();
-            refreshMessageList();
+//            refreshMessageList();
+            adapter.notifyDataSetChanged();
             adapter.fetchMoreEnd(null, true);
         }
     };
@@ -881,6 +890,8 @@ public class MessageListPanelEx {
                 // 7 forward to team
                 longClickItemForwardToTeam(selectedItem, alertDialog);
             }
+            // 7 cancel upload attachment
+            longClickItemCancelUpload(selectedItem, alertDialog);
         }
 
         private boolean enableRevokeButton(IMMessage selectedItem) {
@@ -1087,7 +1098,28 @@ public class MessageListPanelEx {
             });
         }
 
+        // 长按-取消上传附件
+        private void longClickItemCancelUpload(final IMMessage selectedItem, CustomAlertDialog alertDialog) {
+            if (selectedItem.getDirect() != MsgDirectionEnum.Out) {
+                return;
+            }
+            MsgAttachment msgAttachment = selectedItem.getAttachment();
+            if (msgAttachment == null || !(msgAttachment instanceof FileAttachment)) {
+                return;
+            }
+            if (selectedItem.getAttachStatus() != AttachStatusEnum.transferring || selectedItem.getStatus() != MsgStatusEnum.sending) {
+                return;
+            }
+
+            alertDialog.addItem("取消上传", new CustomAlertDialog.onSeparateItemClickListener() {
+                @Override
+                public void onClick() {
+                    NIMClient.getService(MsgService.class).cancelUploadAttachment(selectedItem);
+                }
+            });
+        }
     }
+
 
     private void setEarPhoneMode(boolean earPhoneMode, boolean update) {
         if (update) {
@@ -1232,16 +1264,19 @@ public class MessageListPanelEx {
         } else {
             message = MessageBuilder.createForwardMessage(forwardMessage, sessionId, sessionTypeEnum);
         }
-
         if (message == null) {
             ToastHelper.showToast(container.activity, "该类型不支持转发");
             return;
         }
-
-        NIMClient.getService(MsgService.class).sendMessage(message, false);
-        if (container.account.equals(sessionId)) {
-            onMsgSend(message);
+        if (container.proxySend) {
+            container.proxy.sendMessage(message);
+        } else {
+            NIMClient.getService(MsgService.class).sendMessage(message, false);
+            if (container.account.equals(sessionId)) {
+                onMsgSend(message);
+            }
         }
+
     }
 
     private IMMessage buildForwardRobotMessage(final String sessionId, SessionTypeEnum sessionTypeEnum) {

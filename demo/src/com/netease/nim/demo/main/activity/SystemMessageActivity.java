@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -55,6 +56,7 @@ public class SystemMessageActivity extends UI implements TAdapterDelegate,
     private static final boolean MERGE_ADD_FRIEND_VERIFY = false; // 是否要合并好友申请，同一个用户仅保留最近一条申请内容（默认不合并）
 
     private static final int LOAD_MESSAGE_COUNT = 10;
+    private static final String TAG = "SystemMessageActivity";
 
     // view
     private MessageListView listView;
@@ -279,6 +281,14 @@ public class SystemMessageActivity extends UI implements TAdapterDelegate,
 
         loadOffset++;
         items.add(0, message);
+
+        // 只有拉人入群才可以设置自定义字段
+        String customInfo = message.getCustomInfo();
+        Log.e(TAG, "system message , customInfo = " + customInfo);
+
+        // 获取系统通知的内容。例如：申请附言，拒绝理由
+        String content = message.getContent();
+        Log.e(TAG, "system message , content = " + content);
 
         refresh();
 
