@@ -2,11 +2,11 @@ package com.netease.nim.demo;
 
 import android.app.Application;
 import android.content.Context;
-import android.support.multidex.MultiDex;
+import android.os.Build;
+import android.os.Process;
 import android.text.TextUtils;
+import android.webkit.WebView;
 
-import com.crashlytics.android.Crashlytics;
-import com.crashlytics.android.core.CrashlyticsCore;
 import com.netease.nim.avchatkit.AVChatKit;
 import com.netease.nim.avchatkit.config.AVChatOptions;
 import com.netease.nim.avchatkit.model.ITeamDataProvider;
@@ -40,11 +40,9 @@ import com.netease.nimlib.sdk.uinfo.model.UserInfo;
 import com.netease.nimlib.sdk.util.NIMUtil;
 import com.squareup.leakcanary.LeakCanary;
 
-import io.fabric.sdk.android.Fabric;
+import androidx.multidex.MultiDex;
 
 public class NimApplication extends Application {
-
-    private static NimApplication nimApplication;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -60,7 +58,6 @@ public class NimApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        nimApplication = this;
 
         // 内存泄漏检测
         if (!LeakCanary.isInAnalyzerProcess(this)) {
@@ -100,12 +97,9 @@ public class NimApplication extends Application {
             initRTSKit();
         }
 
-        Crashlytics crashlyticsKit = new Crashlytics.Builder()
-                .core(new CrashlyticsCore.Builder().disabled(BuildConfig.DEBUG).build())
-                .build();
-
-        // Initialize Fabric with the debug-disabled crashlytics.
-        Fabric.with(this, crashlyticsKit);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            WebView.setDataDirectorySuffix(Process.myPid() + "");
+        }
     }
 
     private LoginInfo getLoginInfo() {
@@ -197,9 +191,5 @@ public class NimApplication extends Application {
         };
         RTSKit.init(rtsOptions);
         RTSHelper.init();
-    }
-
-    public static NimApplication getInstance() {
-        return nimApplication;
     }
 }

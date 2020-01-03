@@ -22,8 +22,7 @@ public enum FilterEnum {
     danya("danya", R.drawable.qingxin, "淡雅", Filter.FILTER_TYPE_BEAUTY_FILTER),
     fennen("fennen", R.drawable.shaonv, "粉嫩", Filter.FILTER_TYPE_BEAUTY_FILTER),
     qingxin("qingxin", R.drawable.ziran, "清新", Filter.FILTER_TYPE_BEAUTY_FILTER),
-    hongrun("hongrun", R.drawable.hongrun, "红润", Filter.FILTER_TYPE_BEAUTY_FILTER),
-    fennen3("fennen3", R.drawable.shaonv, "粉嫩", Filter.FILTER_TYPE_BEAUTY_FILTER);
+    hongrun("hongrun", R.drawable.hongrun, "红润", Filter.FILTER_TYPE_BEAUTY_FILTER);
 
     private String filterName;
     private int resId;

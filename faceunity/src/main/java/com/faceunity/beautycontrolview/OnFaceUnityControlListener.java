@@ -3,9 +3,6 @@ package com.faceunity.beautycontrolview;
 
 import com.faceunity.beautycontrolview.entity.Effect;
 import com.faceunity.beautycontrolview.entity.Filter;
-import com.faceunity.beautycontrolview.entity.MakeupItem;
-
-import java.util.List;
 
 /**
  * FURenderer与界面之间的交互接口
@@ -122,20 +119,5 @@ public interface OnFaceUnityControlListener {
      */
     void onMouthShapeSelected(float progress);
 
-
-    /**
-     * 调节多个妆容（轻美妆，质感美颜）
-     *
-     * @param makeupItems
-     */
-    void onLightMakeupBatchSelected(List<MakeupItem> makeupItems);
-
-    /**
-     * 选择美妆效果（轻美妆，质感美颜）
-     *
-     * @param makeupItem
-     * @param level
-     */
-    void onLightMakeupSelected(MakeupItem makeupItem, float level);
 
 }

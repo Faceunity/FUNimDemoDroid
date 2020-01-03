@@ -38,6 +38,8 @@ import com.netease.nim.uikit.business.session.activity.P2PMessageActivity;
 import com.netease.nim.uikit.business.session.activity.TeamMessageActivity;
 import com.netease.nim.uikit.business.session.audio.MessageAudioControl;
 import com.netease.nim.uikit.business.session.emoji.StickerManager;
+import com.netease.nim.uikit.business.session.module.MultiRetweetMsgCreatorFactory;
+import com.netease.nim.uikit.business.session.module.IMultiRetweetMsgCreator;
 import com.netease.nim.uikit.business.session.module.MsgForwardFilter;
 import com.netease.nim.uikit.business.session.module.MsgRevokeFilter;
 import com.netease.nim.uikit.business.session.viewholder.MsgViewHolderBase;
@@ -511,6 +513,10 @@ public final class NimUIKitImpl {
 
     public static void registerMsgItemViewHolder(Class<? extends MsgAttachment> attach, Class<? extends MsgViewHolderBase> viewHolder) {
         MsgViewHolderFactory.register(attach, viewHolder);
+    }
+
+    public static void registerCustomMsgCreator(IMultiRetweetMsgCreator creator){
+        MultiRetweetMsgCreatorFactory.registerCreator(creator);
     }
 
     public static void registerChatRoomMsgItemViewHolder(Class<? extends MsgAttachment> attach, Class<? extends ChatRoomMsgViewHolderBase> viewHolder) {

@@ -68,12 +68,15 @@ import java.util.List;
  * 高级群群资料页
  * Created by huangjun on 2015/3/17.
  */
-public class AdvancedTeamInfoActivity extends UI implements
-        TAdapterDelegate, TeamMemberAdapter.AddMemberCallback, TeamMemberHolder.TeamMemberHolderEventListener {
+public class AdvancedTeamInfoActivity extends UI implements TAdapterDelegate, TeamMemberAdapter.AddMemberCallback,
+        TeamMemberHolder.TeamMemberHolderEventListener {
 
     private static final int REQUEST_CODE_TRANSFER = 101;
+
     private static final int REQUEST_CODE_MEMBER_LIST = 102;
+
     private static final int REQUEST_CODE_CONTACT_SELECT = 103;
+
     private static final int REQUEST_PICK_ICON = 104;
 
     private static final int ICON_TIME_OUT = 30000;
@@ -82,67 +85,109 @@ public class AdvancedTeamInfoActivity extends UI implements
     private static final String TAG = "RegularTeamInfoActivity";
 
     private static final String EXTRA_ID = "EXTRA_ID";
+
     public static final String RESULT_EXTRA_REASON = "RESULT_EXTRA_REASON";
+
     public static final String RESULT_EXTRA_REASON_QUIT = "RESULT_EXTRA_REASON_QUIT";
+
     public static final String RESULT_EXTRA_REASON_DISMISS = "RESULT_EXTRA_REASON_DISMISS";
 
     private static final int TEAM_MEMBERS_SHOW_LIMIT = 5;
 
     // data
     private TeamMemberAdapter adapter;
+
     private String teamId;
+
     private Team team;
+
     private String creator;
+
     private List<String> memberAccounts;
+
     private List<TeamMember> members;
+
     private List<TeamMemberAdapter.TeamMemberItem> dataSource;
+
     private MenuDialog dialog;
+
     private MenuDialog authenDialog;
+
     private MenuDialog inviteDialog;
+
     private MenuDialog teamInfoUpdateDialog;
+
     private MenuDialog teamInviteeDialog;
+
     private MenuDialog teamNotifyDialog;
+
     private List<String> managerList;
+
     private UserInfoObserver userInfoObserver;
+
     private AbortableFuture<String> uploadFuture;
 
     // view
     private View headerLayout;
+
     private HeadImageView teamHeadImage;
+
     private TextView teamNameText;
+
     private TextView teamIdText;
+
     private TextView teamCreateTimeText;
 
     private TextView teamBusinessCard; // 我的群名片
 
     private View layoutMime;
+
     private View layoutTeamMember;
+
     private TeamInfoGridView gridView;
+
     private View layoutTeamName;
+
     private View layoutTeamIntroduce;
+
     private View layoutTeamAnnouncement;
+
     private View layoutTeamExtension;
+
     private View layoutAuthentication;
+
     private View layoutNotificationConfig;
+
     // 邀请他人权限
     private View layoutInvite;
+
     private TextView inviteText;
+
     // 群资料修改权限
     private View layoutInfoUpdate;
+
     private TextView infoUpdateText;
+
     // 被邀请人身份验证权限
     private View layoutInviteeAuthen;
+
     private TextView inviteeAutenText;
 
     private TextView memberCountText;
+
     private TextView introduceEdit;
+
     private TextView announcementEdit;
+
     private TextView extensionTextView;
+
     private TextView authenticationText;
+
     private TextView notificationConfigText;
 
     // state
     private boolean isSelfAdmin = false;
+
     private boolean isSelfManager = false;
 
     public static void start(Context context, String tid) {
@@ -176,12 +221,9 @@ public class AdvancedTeamInfoActivity extends UI implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.nim_advanced_team_info_activity);
-
         ToolBarOptions options = new NimToolBarOptions();
         setToolBar(R.id.toolbar, options);
-
         parseIntentData();
         findViews();
         initActionbar();
@@ -194,11 +236,9 @@ public class AdvancedTeamInfoActivity extends UI implements
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (resultCode != Activity.RESULT_OK) {
             return;
         }
-
         switch (requestCode) {
             case REQUEST_CODE_CONTACT_SELECT:
                 final ArrayList<String> selected = data.getStringArrayListExtra(ContactSelectActivity.RESULT_DATA);
@@ -232,7 +272,7 @@ public class AdvancedTeamInfoActivity extends UI implements
                 break;
             case REQUEST_PICK_ICON:
                 onPicked(data);
-//
+                //
                 break;
             default:
                 break;
@@ -256,13 +296,10 @@ public class AdvancedTeamInfoActivity extends UI implements
         if (dialog != null) {
             dialog.dismiss();
         }
-
         if (authenDialog != null) {
             authenDialog.dismiss();
         }
-
         registerObservers(false);
-
         super.onDestroy();
     }
 
@@ -273,82 +310,86 @@ public class AdvancedTeamInfoActivity extends UI implements
     private void findViews() {
         headerLayout = findViewById(R.id.team_info_header);
         headerLayout.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 showSelector(R.string.set_head_image, REQUEST_PICK_ICON);
             }
         });
-
-        teamHeadImage = (HeadImageView) findViewById(R.id.team_head_image);
-        teamNameText = (TextView) findViewById(R.id.team_name);
-        teamIdText = (TextView) findViewById(R.id.team_id);
-        teamCreateTimeText = (TextView) findViewById(R.id.team_create_time);
-
+        teamHeadImage = findViewById(R.id.team_head_image);
+        teamNameText = findViewById(R.id.team_name);
+        teamIdText = findViewById(R.id.team_id);
+        teamCreateTimeText = findViewById(R.id.team_create_time);
         layoutMime = findViewById(R.id.team_mime_layout);
         ((TextView) layoutMime.findViewById(R.id.item_title)).setText(R.string.my_team_card);
-        teamBusinessCard = (TextView) layoutMime.findViewById(R.id.item_detail);
+        teamBusinessCard = layoutMime.findViewById(R.id.item_detail);
         layoutMime.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                AdvancedTeamNicknameActivity.start(AdvancedTeamInfoActivity.this, teamBusinessCard.getText().toString());
+                AdvancedTeamNicknameActivity.start(AdvancedTeamInfoActivity.this,
+                                                   teamBusinessCard.getText().toString());
             }
         });
-
         layoutTeamMember = findViewById(R.id.team_memeber_layout);
         ((TextView) layoutTeamMember.findViewById(R.id.item_title)).setText(R.string.team_member);
-        memberCountText = (TextView) layoutTeamMember.findViewById(R.id.item_detail);
-        gridView = (TeamInfoGridView) findViewById(R.id.team_member_grid_view);
+        memberCountText = layoutTeamMember.findViewById(R.id.item_detail);
+        gridView = findViewById(R.id.team_member_grid_view);
         layoutTeamMember.setVisibility(View.GONE);
         gridView.setVisibility(View.GONE);
         memberCountText.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                AdvancedTeamMemberActivity.startActivityForResult(AdvancedTeamInfoActivity.this, teamId, REQUEST_CODE_MEMBER_LIST);
+                AdvancedTeamMemberActivity.startActivityForResult(AdvancedTeamInfoActivity.this, teamId,
+                                                                  REQUEST_CODE_MEMBER_LIST);
             }
         });
-
         layoutTeamName = findViewById(R.id.team_name_layout);
         ((TextView) layoutTeamName.findViewById(R.id.item_title)).setText(R.string.team_name);
         layoutTeamName.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                TeamPropertySettingActivity.start(AdvancedTeamInfoActivity.this, teamId, TeamFieldEnum.Name, team.getName());
+                TeamPropertySettingActivity.start(AdvancedTeamInfoActivity.this, teamId, TeamFieldEnum.Name,
+                                                  team.getName());
             }
         });
-
         layoutTeamIntroduce = findViewById(R.id.team_introduce_layout);
         ((TextView) layoutTeamIntroduce.findViewById(R.id.item_title)).setText(R.string.team_introduce);
-        introduceEdit = ((TextView) layoutTeamIntroduce.findViewById(R.id.item_detail));
+        introduceEdit = layoutTeamIntroduce.findViewById(R.id.item_detail);
         introduceEdit.setHint(R.string.team_introduce_hint);
         layoutTeamIntroduce.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                TeamPropertySettingActivity.start(AdvancedTeamInfoActivity.this, teamId, TeamFieldEnum.Introduce, team.getIntroduce());
+                TeamPropertySettingActivity.start(AdvancedTeamInfoActivity.this, teamId, TeamFieldEnum.Introduce,
+                                                  team.getIntroduce());
             }
         });
-
         layoutTeamAnnouncement = findViewById(R.id.team_announcement_layout);
         ((TextView) layoutTeamAnnouncement.findViewById(R.id.item_title)).setText(R.string.team_annourcement);
-        announcementEdit = ((TextView) layoutTeamAnnouncement.findViewById(R.id.item_detail));
+        announcementEdit = layoutTeamAnnouncement.findViewById(R.id.item_detail);
         announcementEdit.setHint(R.string.team_announce_hint);
         layoutTeamAnnouncement.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 AdvancedTeamAnnounceActivity.start(AdvancedTeamInfoActivity.this, teamId);
             }
         });
-
         layoutTeamExtension = findViewById(R.id.team_extension_layout);
         ((TextView) layoutTeamExtension.findViewById(R.id.item_title)).setText(R.string.team_extension);
-        extensionTextView = ((TextView) layoutTeamExtension.findViewById(R.id.item_detail));
+        extensionTextView = layoutTeamExtension.findViewById(R.id.item_detail);
         extensionTextView.setHint(R.string.team_extension_hint);
         layoutTeamExtension.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                TeamPropertySettingActivity.start(AdvancedTeamInfoActivity.this, teamId, TeamFieldEnum.Extension, team.getExtension());
+                TeamPropertySettingActivity.start(AdvancedTeamInfoActivity.this, teamId, TeamFieldEnum.Extension,
+                                                  team.getExtension());
             }
         });
-
         // 群消息提醒设置
         initNotify();
         // 身份验证
@@ -376,6 +417,7 @@ public class AdvancedTeamInfoActivity extends UI implements
         ((TextView) layoutNotificationConfig.findViewById(R.id.item_title)).setText(R.string.team_notification_config);
         notificationConfigText = (TextView) layoutNotificationConfig.findViewById(R.id.item_detail);
         layoutNotificationConfig.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 showTeamNotifyMenu();
@@ -393,6 +435,7 @@ public class AdvancedTeamInfoActivity extends UI implements
         ((TextView) layoutAuthentication.findViewById(R.id.item_title)).setText(R.string.team_authentication);
         authenticationText = ((TextView) layoutAuthentication.findViewById(R.id.item_detail));
         layoutAuthentication.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 showTeamAuthenMenu();
@@ -409,6 +452,7 @@ public class AdvancedTeamInfoActivity extends UI implements
         ((TextView) layoutInvite.findViewById(R.id.item_title)).setText(R.string.team_invite);
         inviteText = ((TextView) layoutInvite.findViewById(R.id.item_detail));
         layoutInvite.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 showTeamInviteMenu();
@@ -423,8 +467,9 @@ public class AdvancedTeamInfoActivity extends UI implements
         layoutInfoUpdate = findViewById(R.id.team_info_update_layout);
         layoutInfoUpdate.setVisibility(View.GONE);
         ((TextView) layoutInfoUpdate.findViewById(R.id.item_title)).setText(R.string.team_info_update);
-        infoUpdateText = ((TextView) layoutInfoUpdate.findViewById(R.id.item_detail));
+        infoUpdateText = layoutInfoUpdate.findViewById(R.id.item_detail);
         layoutInfoUpdate.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 showTeamInfoUpdateMenu();
@@ -440,8 +485,9 @@ public class AdvancedTeamInfoActivity extends UI implements
         layoutInviteeAuthen = findViewById(R.id.team_invitee_authen_layout);
         layoutInviteeAuthen.setVisibility(View.GONE);
         ((TextView) layoutInviteeAuthen.findViewById(R.id.item_title)).setText(R.string.team_invitee_authentication);
-        inviteeAutenText = ((TextView) layoutInviteeAuthen.findViewById(R.id.item_detail));
+        inviteeAutenText = layoutInviteeAuthen.findViewById(R.id.item_detail);
         layoutInviteeAuthen.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 showTeamInviteeAuthenMenu();
@@ -453,6 +499,7 @@ public class AdvancedTeamInfoActivity extends UI implements
         TextView toolbarView = findView(R.id.action_bar_right_clickable_textview);
         toolbarView.setText(R.string.menu);
         toolbarView.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 showRegularTeamMenu();
@@ -467,7 +514,6 @@ public class AdvancedTeamInfoActivity extends UI implements
         managerList = new ArrayList<>();
         adapter = new TeamMemberAdapter(this, dataSource, this, null, this);
         adapter.setEventListener(this);
-
         gridView.setSelector(R.color.transparent);
         gridView.setOnScrollListener(new AbsListView.OnScrollListener() {
 
@@ -480,7 +526,6 @@ public class AdvancedTeamInfoActivity extends UI implements
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-
             }
         });
         gridView.setAdapter(adapter);
@@ -495,6 +540,7 @@ public class AdvancedTeamInfoActivity extends UI implements
             updateTeamInfo(t);
         } else {
             NimUIKit.getTeamProvider().fetchTeamById(teamId, new SimpleCallback<Team>() {
+
                 @Override
                 public void onResult(boolean success, Team result, int code) {
                     if (success && result != null) {
@@ -519,7 +565,6 @@ public class AdvancedTeamInfoActivity extends UI implements
      */
     private void updateTeamInfo(final Team t) {
         this.team = t;
-
         if (team == null) {
             ToastHelper.showToast(this, getString(R.string.team_not_exist));
             finish();
@@ -529,20 +574,16 @@ public class AdvancedTeamInfoActivity extends UI implements
             if (creator.equals(NimUIKit.getAccount())) {
                 isSelfAdmin = true;
             }
-
             setTitle(team.getName());
         }
-
         teamHeadImage.loadTeamIconByTeam(team);
         teamNameText.setText(team.getName());
         teamIdText.setText(team.getId());
         teamCreateTimeText.setText(TimeUtil.getTimeShowString(team.getCreateTime(), true));
-
         ((TextView) layoutTeamName.findViewById(R.id.item_detail)).setText(team.getName());
         introduceEdit.setText(team.getIntroduce());
         extensionTextView.setText(team.getExtension());
         memberCountText.setText(String.format("共%d人", team.getMemberCount()));
-
         setAnnouncement(team.getAnnouncement());
         setAuthenticationText(team.getVerifyType());
         updateTeamNotifyText(team.getMessageNotifyType());
@@ -560,7 +601,6 @@ public class AdvancedTeamInfoActivity extends UI implements
         if (m != null && m.isEmpty()) {
             return;
         }
-
         updateTeamBusinessCard(m);
         addTeamMembers(m, true);
     }
@@ -588,15 +628,12 @@ public class AdvancedTeamInfoActivity extends UI implements
         if (m == null || m.isEmpty()) {
             return;
         }
-
         isSelfManager = false;
         isSelfAdmin = false;
-
         if (clear) {
             this.members.clear();
             this.memberAccounts.clear();
         }
-
         // add
         if (this.members.isEmpty()) {
             this.members.addAll(m);
@@ -607,10 +644,8 @@ public class AdvancedTeamInfoActivity extends UI implements
                 }
             }
         }
-
         // sort
         Collections.sort(this.members, TeamHelper.teamMemberComparator);
-
         // accounts, manager, creator
         this.memberAccounts.clear();
         this.managerList.clear();
@@ -631,7 +666,6 @@ public class AdvancedTeamInfoActivity extends UI implements
             }
             this.memberAccounts.add(tm.getAccount());
         }
-
         updateAuthenView();
         updateTeamMemberDataSource();
     }
@@ -668,15 +702,12 @@ public class AdvancedTeamInfoActivity extends UI implements
             layoutTeamMember.setVisibility(View.GONE);
             return;
         }
-
         dataSource.clear();
-
         // add item
         if (team.getTeamInviteMode() == TeamInviteModeEnum.All || isSelfAdmin || isSelfManager) {
-            dataSource.add(new TeamMemberAdapter.TeamMemberItem(TeamMemberAdapter.TeamMemberItemTag.ADD, null, null,
-                    null));
+            dataSource.add(
+                    new TeamMemberAdapter.TeamMemberItem(TeamMemberAdapter.TeamMemberItemTag.ADD, null, null, null));
         }
-
         // member item
         int count = 0;
         String identity = null;
@@ -687,12 +718,11 @@ public class AdvancedTeamInfoActivity extends UI implements
             }
             if (count < limit) {
                 identity = getIdentity(account);
-                dataSource.add(new TeamMemberAdapter.TeamMemberItem(TeamMemberAdapter.TeamMemberItemTag
-                        .NORMAL, teamId, account, identity));
+                dataSource.add(new TeamMemberAdapter.TeamMemberItem(TeamMemberAdapter.TeamMemberItemTag.NORMAL, teamId,
+                                                                    account, identity));
             }
             count++;
         }
-
         // refresh
         adapter.notifyDataSetChanged();
         memberCountText.setText(String.format("共%d人", count));
@@ -715,6 +745,7 @@ public class AdvancedTeamInfoActivity extends UI implements
      */
     private void requestMembers() {
         NimUIKit.getTeamProvider().fetchTeamMemberList(teamId, new SimpleCallback<List<TeamMember>>() {
+
             @Override
             public void onResult(boolean success, List<TeamMember> members, int code) {
                 if (success && members != null && !members.isEmpty()) {
@@ -723,7 +754,6 @@ public class AdvancedTeamInfoActivity extends UI implements
             }
         });
     }
-
     /**
      * ************************** 群信息变更监听 **************************
      */
@@ -742,7 +772,16 @@ public class AdvancedTeamInfoActivity extends UI implements
 
         @Override
         public void onUpdateTeamMember(List<TeamMember> m) {
-            for (TeamMember mm : m) {
+            List<TeamMember> filterList = new ArrayList<>();
+            for (TeamMember member : m) {
+                if (TextUtils.equals(member.getTid(), teamId)) {
+                    filterList.add(member);
+                }
+            }
+            if (filterList.isEmpty()) {
+                return;
+            }
+            for (TeamMember mm : filterList) {
                 for (TeamMember member : members) {
                     if (mm.getAccount().equals(member.getAccount())) {
                         members.set(members.indexOf(member), mm);
@@ -750,18 +789,25 @@ public class AdvancedTeamInfoActivity extends UI implements
                     }
                 }
             }
-            addTeamMembers(m, false);
+            addTeamMembers(filterList, false);
         }
 
         @Override
         public void onRemoveTeamMember(List<TeamMember> members) {
+            List<String> filter = new ArrayList<>();
             for (TeamMember member : members) {
-                removeMember(member.getAccount());
+                if (TextUtils.equals(member.getTid(), teamId)) {
+                    filter.add(member.getAccount());
+                }
+            }
+            if (filter.size() > 0) {
+                removeMembers(filter);
             }
         }
     };
 
     TeamDataChangedObserver teamDataObserver = new TeamDataChangedObserver() {
+
         @Override
         public void onUpdateTeams(List<Team> teams) {
             for (Team team : teams) {
@@ -781,7 +827,6 @@ public class AdvancedTeamInfoActivity extends UI implements
             }
         }
     };
-
     /**
      * ******************************* Action *********************************
      */
@@ -803,7 +848,6 @@ public class AdvancedTeamInfoActivity extends UI implements
             ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.team_transfer_without_member);
             return;
         }
-
         ContactSelectActivity.Option option = new ContactSelectActivity.Option();
         option.title = "选择群转移的对象";
         option.type = ContactSelectActivity.ContactSelectType.TEAM_MEMBER;
@@ -823,32 +867,33 @@ public class AdvancedTeamInfoActivity extends UI implements
      * @param accounts 邀请帐号
      */
     private void inviteMembers(ArrayList<String> accounts) {
-//        NIMClient.getService(TeamService.class).addMembers(teamId, accounts).setCallback(new RequestCallback<List<String>>() {
-        NIMClient.getService(TeamService.class).addMembersEx(teamId, accounts, "邀请附言", "邀请扩展字段").setCallback(new RequestCallback<List<String>>() {
-            @Override
-            public void onSuccess(List<String> failedAccounts) {
-                if (failedAccounts == null || failedAccounts.isEmpty()) {
-                    ToastHelper.showToast(AdvancedTeamInfoActivity.this, "添加群成员成功");
-                } else {
-                    TeamHelper.onMemberTeamNumOverrun(failedAccounts, AdvancedTeamInfoActivity.this);
-                }
-            }
+        //        NIMClient.getService(TeamService.class).addMembers(teamId, accounts).setCallback(new RequestCallback<List<String>>() {
+        NIMClient.getService(TeamService.class).addMembersEx(teamId, accounts, "邀请附言", "邀请扩展字段").setCallback(
+                new RequestCallback<List<String>>() {
 
-            @Override
-            public void onFailed(int code) {
-                if (code == ResponseCode.RES_TEAM_INVITE_SUCCESS) {
-                    ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.team_invite_members_success);
-                } else {
-                    ToastHelper.showToast(AdvancedTeamInfoActivity.this, "invite members failed, code=" + code);
-                    Log.e(TAG, "invite members failed, code=" + code);
-                }
-            }
+                    @Override
+                    public void onSuccess(List<String> failedAccounts) {
+                        if (failedAccounts == null || failedAccounts.isEmpty()) {
+                            ToastHelper.showToast(AdvancedTeamInfoActivity.this, "添加群成员成功");
+                        } else {
+                            TeamHelper.onMemberTeamNumOverrun(failedAccounts, AdvancedTeamInfoActivity.this);
+                        }
+                    }
 
-            @Override
-            public void onException(Throwable exception) {
+                    @Override
+                    public void onFailed(int code) {
+                        if (code == ResponseCode.RES_TEAM_INVITE_SUCCESS) {
+                            ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.team_invite_members_success);
+                        } else {
+                            ToastHelper.showToast(AdvancedTeamInfoActivity.this, "invite members failed, code=" + code);
+                            Log.e(TAG, "invite members failed, code=" + code);
+                        }
+                    }
 
-            }
-        });
+                    @Override
+                    public void onException(Throwable exception) {
+                    }
+                });
     }
 
     /**
@@ -866,8 +911,9 @@ public class AdvancedTeamInfoActivity extends UI implements
             ToastHelper.showToastLong(AdvancedTeamInfoActivity.this, "该成员已被禁言，请先取消禁言");
             return;
         }
-        NIMClient.getService(TeamService.class).transferTeam(teamId, account, false)
-                .setCallback(new RequestCallback<List<TeamMember>>() {
+        NIMClient.getService(TeamService.class).transferTeam(teamId, account, false).setCallback(
+                new RequestCallback<List<TeamMember>>() {
+
                     @Override
                     public void onSuccess(List<TeamMember> members) {
                         creator = account;
@@ -883,7 +929,6 @@ public class AdvancedTeamInfoActivity extends UI implements
 
                     @Override
                     public void onException(Throwable exception) {
-
                     }
                 });
     }
@@ -894,6 +939,7 @@ public class AdvancedTeamInfoActivity extends UI implements
     private void quitTeam() {
         DialogMaker.showProgressDialog(this, getString(R.string.empty), true);
         NIMClient.getService(TeamService.class).quitTeam(teamId).setCallback(new RequestCallback<Void>() {
+
             @Override
             public void onSuccess(Void param) {
                 DialogMaker.dismissProgressDialog();
@@ -921,6 +967,7 @@ public class AdvancedTeamInfoActivity extends UI implements
     private void dismissTeam() {
         DialogMaker.showProgressDialog(this, getString(R.string.empty), true);
         NIMClient.getService(TeamService.class).dismissTeam(teamId).setCallback(new RequestCallback<Void>() {
+
             @Override
             public void onSuccess(Void param) {
                 DialogMaker.dismissProgressDialog();
@@ -941,7 +988,6 @@ public class AdvancedTeamInfoActivity extends UI implements
             }
         });
     }
-
     /**
      * ******************************* Event *********************************
      */
@@ -959,6 +1005,7 @@ public class AdvancedTeamInfoActivity extends UI implements
             btnNames.add(getString(R.string.cancel));
         }
         dialog = new MenuDialog(this, btnNames, new MenuDialog.MenuDialogOnButtonClickListener() {
+
             @Override
             public void onButtonClick(String name) {
                 if (name.equals(getString(R.string.quit_team))) {
@@ -971,7 +1018,6 @@ public class AdvancedTeamInfoActivity extends UI implements
                 dialog.dismiss();
             }
         });
-
         dialog.show();
     }
 
@@ -980,38 +1026,42 @@ public class AdvancedTeamInfoActivity extends UI implements
         if (teamNotifyDialog == null) {
             List<String> btnNames = TeamHelper.createNotifyMenuStrings();
             int type = team.getMessageNotifyType().getValue();
-            teamNotifyDialog = new MenuDialog(AdvancedTeamInfoActivity.this, btnNames, type, 3, new MenuDialog
-                    .MenuDialogOnButtonClickListener() {
-                @Override
-                public void onButtonClick(String name) {
-                    teamNotifyDialog.dismiss();
+            teamNotifyDialog = new MenuDialog(AdvancedTeamInfoActivity.this, btnNames, type, 3,
+                                              new MenuDialog.MenuDialogOnButtonClickListener() {
 
-                    TeamMessageNotifyTypeEnum type = TeamHelper.getNotifyType(name);
-                    if (type == null) {
-                        return;
-                    }
-                    DialogMaker.showProgressDialog(AdvancedTeamInfoActivity.this, getString(R.string.empty), true);
-                    NIMClient.getService(TeamService.class).muteTeam(teamId, type).setCallback(new RequestCallback<Void>() {
-                        @Override
-                        public void onSuccess(Void param) {
-                            DialogMaker.dismissProgressDialog();
-                            updateTeamNotifyText(team.getMessageNotifyType());
-                        }
+                                                  @Override
+                                                  public void onButtonClick(String name) {
+                                                      teamNotifyDialog.dismiss();
+                                                      TeamMessageNotifyTypeEnum type = TeamHelper.getNotifyType(name);
+                                                      if (type == null) {
+                                                          return;
+                                                      }
+                                                      DialogMaker.showProgressDialog(AdvancedTeamInfoActivity.this,
+                                                                                     getString(R.string.empty), true);
+                                                      NIMClient.getService(TeamService.class).muteTeam(teamId, type)
+                                                               .setCallback(new RequestCallback<Void>() {
 
-                        @Override
-                        public void onFailed(int code) {
-                            DialogMaker.dismissProgressDialog();
-                            teamNotifyDialog.undoLastSelect();
-                            Log.d(TAG, "muteTeam failed code:" + code);
-                        }
+                                                                   @Override
+                                                                   public void onSuccess(Void param) {
+                                                                       DialogMaker.dismissProgressDialog();
+                                                                       updateTeamNotifyText(
+                                                                               team.getMessageNotifyType());
+                                                                   }
 
-                        @Override
-                        public void onException(Throwable exception) {
-                            DialogMaker.dismissProgressDialog();
-                        }
-                    });
-                }
-            });
+                                                                   @Override
+                                                                   public void onFailed(int code) {
+                                                                       DialogMaker.dismissProgressDialog();
+                                                                       teamNotifyDialog.undoLastSelect();
+                                                                       Log.d(TAG, "muteTeam failed code:" + code);
+                                                                   }
+
+                                                                   @Override
+                                                                   public void onException(Throwable exception) {
+                                                                       DialogMaker.dismissProgressDialog();
+                                                                   }
+                                                               });
+                                                  }
+                                              });
         }
         teamNotifyDialog.show();
     }
@@ -1022,24 +1072,23 @@ public class AdvancedTeamInfoActivity extends UI implements
     private void showTeamAuthenMenu() {
         if (authenDialog == null) {
             List<String> btnNames = TeamHelper.createAuthenMenuStrings();
-
             int type = team.getVerifyType().getValue();
-            authenDialog = new MenuDialog(AdvancedTeamInfoActivity.this, btnNames, type, 3, new MenuDialog
-                    .MenuDialogOnButtonClickListener() {
-                @Override
-                public void onButtonClick(String name) {
-                    authenDialog.dismiss();
+            authenDialog = new MenuDialog(AdvancedTeamInfoActivity.this, btnNames, type, 3,
+                                          new MenuDialog.MenuDialogOnButtonClickListener() {
 
-                    if (name.equals(getString(R.string.cancel))) {
-                        return; // 取消不处理
-                    }
-                    VerifyTypeEnum type = TeamHelper.getVerifyTypeEnum(name);
-                    if (type != null) {
-                        setAuthen(type);
-                    }
+                                              @Override
+                                              public void onButtonClick(String name) {
+                                                  authenDialog.dismiss();
+                                                  if (name.equals(getString(R.string.cancel))) {
+                                                      return; // 取消不处理
+                                                  }
+                                                  VerifyTypeEnum type = TeamHelper.getVerifyTypeEnum(name);
+                                                  if (type != null) {
+                                                      setAuthen(type);
+                                                  }
 
-                }
-            });
+                                              }
+                                          });
         }
         authenDialog.show();
     }
@@ -1050,23 +1099,22 @@ public class AdvancedTeamInfoActivity extends UI implements
     private void showTeamInviteMenu() {
         if (inviteDialog == null) {
             List<String> btnNames = TeamHelper.createInviteMenuStrings();
-
             int type = team.getTeamInviteMode().getValue();
-            inviteDialog = new MenuDialog(AdvancedTeamInfoActivity.this, btnNames, type, 2, new MenuDialog
-                    .MenuDialogOnButtonClickListener() {
-                @Override
-                public void onButtonClick(String name) {
-                    inviteDialog.dismiss();
+            inviteDialog = new MenuDialog(AdvancedTeamInfoActivity.this, btnNames, type, 2,
+                                          new MenuDialog.MenuDialogOnButtonClickListener() {
 
-                    if (name.equals(getString(R.string.cancel))) {
-                        return; // 取消不处理
-                    }
-                    TeamInviteModeEnum type = TeamHelper.getInviteModeEnum(name);
-                    if (type != null) {
-                        updateInviteMode(type);
-                    }
-                }
-            });
+                                              @Override
+                                              public void onButtonClick(String name) {
+                                                  inviteDialog.dismiss();
+                                                  if (name.equals(getString(R.string.cancel))) {
+                                                      return; // 取消不处理
+                                                  }
+                                                  TeamInviteModeEnum type = TeamHelper.getInviteModeEnum(name);
+                                                  if (type != null) {
+                                                      updateInviteMode(type);
+                                                  }
+                                              }
+                                          });
         }
         inviteDialog.show();
     }
@@ -1075,23 +1123,22 @@ public class AdvancedTeamInfoActivity extends UI implements
     private void showTeamInfoUpdateMenu() {
         if (teamInfoUpdateDialog == null) {
             List<String> btnNames = TeamHelper.createTeamInfoUpdateMenuStrings();
-
             int type = team.getTeamUpdateMode().getValue();
-            teamInfoUpdateDialog = new MenuDialog(AdvancedTeamInfoActivity.this, btnNames, type, 2, new MenuDialog
-                    .MenuDialogOnButtonClickListener() {
-                @Override
-                public void onButtonClick(String name) {
-                    teamInfoUpdateDialog.dismiss();
+            teamInfoUpdateDialog = new MenuDialog(AdvancedTeamInfoActivity.this, btnNames, type, 2,
+                                                  new MenuDialog.MenuDialogOnButtonClickListener() {
 
-                    if (name.equals(getString(R.string.cancel))) {
-                        return; // 取消不处理
-                    }
-                    TeamUpdateModeEnum type = TeamHelper.getUpdateModeEnum(name);
-                    if (type != null) {
-                        updateInfoUpdateMode(type);
-                    }
-                }
-            });
+                                                      @Override
+                                                      public void onButtonClick(String name) {
+                                                          teamInfoUpdateDialog.dismiss();
+                                                          if (name.equals(getString(R.string.cancel))) {
+                                                              return; // 取消不处理
+                                                          }
+                                                          TeamUpdateModeEnum type = TeamHelper.getUpdateModeEnum(name);
+                                                          if (type != null) {
+                                                              updateInfoUpdateMode(type);
+                                                          }
+                                                      }
+                                                  });
         }
         teamInfoUpdateDialog.show();
     }
@@ -1100,23 +1147,23 @@ public class AdvancedTeamInfoActivity extends UI implements
     private void showTeamInviteeAuthenMenu() {
         if (teamInviteeDialog == null) {
             List<String> btnNames = TeamHelper.createTeamInviteeAuthenMenuStrings();
-
             int type = team.getTeamBeInviteMode().getValue();
-            teamInviteeDialog = new MenuDialog(AdvancedTeamInfoActivity.this, btnNames, type, 2, new MenuDialog
-                    .MenuDialogOnButtonClickListener() {
-                @Override
-                public void onButtonClick(String name) {
-                    teamInviteeDialog.dismiss();
+            teamInviteeDialog = new MenuDialog(AdvancedTeamInfoActivity.this, btnNames, type, 2,
+                                               new MenuDialog.MenuDialogOnButtonClickListener() {
 
-                    if (name.equals(getString(R.string.cancel))) {
-                        return; // 取消不处理
-                    }
-                    TeamBeInviteModeEnum type = TeamHelper.getBeInvitedModeEnum(name);
-                    if (type != null) {
-                        updateBeInvitedMode(type);
-                    }
-                }
-            });
+                                                   @Override
+                                                   public void onButtonClick(String name) {
+                                                       teamInviteeDialog.dismiss();
+                                                       if (name.equals(getString(R.string.cancel))) {
+                                                           return; // 取消不处理
+                                                       }
+                                                       TeamBeInviteModeEnum type = TeamHelper.getBeInvitedModeEnum(
+                                                               name);
+                                                       if (type != null) {
+                                                           updateBeInvitedMode(type);
+                                                       }
+                                                   }
+                                               });
         }
         teamInviteeDialog.show();
     }
@@ -1129,25 +1176,28 @@ public class AdvancedTeamInfoActivity extends UI implements
      */
     private void setBusinessCard(final String nickname) {
         DialogMaker.showProgressDialog(this, getString(R.string.empty), true);
-        NIMClient.getService(TeamService.class).updateMemberNick(teamId, NimUIKit.getAccount(), nickname).setCallback(new RequestCallback<Void>() {
-            @Override
-            public void onSuccess(Void param) {
-                DialogMaker.dismissProgressDialog();
-                teamBusinessCard.setText(nickname);
-                ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
-            }
+        NIMClient.getService(TeamService.class).updateMemberNick(teamId, NimUIKit.getAccount(), nickname).setCallback(
+                new RequestCallback<Void>() {
 
-            @Override
-            public void onFailed(int code) {
-                DialogMaker.dismissProgressDialog();
-                ToastHelper.showToast(AdvancedTeamInfoActivity.this, String.format(getString(R.string.update_failed), code));
-            }
+                    @Override
+                    public void onSuccess(Void param) {
+                        DialogMaker.dismissProgressDialog();
+                        teamBusinessCard.setText(nickname);
+                        ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
+                    }
 
-            @Override
-            public void onException(Throwable exception) {
-                DialogMaker.dismissProgressDialog();
-            }
-        });
+                    @Override
+                    public void onFailed(int code) {
+                        DialogMaker.dismissProgressDialog();
+                        ToastHelper.showToast(AdvancedTeamInfoActivity.this,
+                                              String.format(getString(R.string.update_failed), code));
+                    }
+
+                    @Override
+                    public void onException(Throwable exception) {
+                        DialogMaker.dismissProgressDialog();
+                    }
+                });
     }
 
     @Override
@@ -1177,26 +1227,29 @@ public class AdvancedTeamInfoActivity extends UI implements
      */
     private void setAuthen(final VerifyTypeEnum type) {
         DialogMaker.showProgressDialog(this, getString(R.string.empty));
-        NIMClient.getService(TeamService.class).updateTeam(teamId, TeamFieldEnum.VerifyType, type).setCallback(new RequestCallback<Void>() {
-            @Override
-            public void onSuccess(Void param) {
-                DialogMaker.dismissProgressDialog();
-                setAuthenticationText(type);
-                ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
-            }
+        NIMClient.getService(TeamService.class).updateTeam(teamId, TeamFieldEnum.VerifyType, type).setCallback(
+                new RequestCallback<Void>() {
 
-            @Override
-            public void onFailed(int code) {
-                authenDialog.undoLastSelect(); // 撤销选择
-                DialogMaker.dismissProgressDialog();
-                ToastHelper.showToast(AdvancedTeamInfoActivity.this, String.format(getString(R.string.update_failed), code));
-            }
+                    @Override
+                    public void onSuccess(Void param) {
+                        DialogMaker.dismissProgressDialog();
+                        setAuthenticationText(type);
+                        ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
+                    }
 
-            @Override
-            public void onException(Throwable exception) {
-                DialogMaker.dismissProgressDialog();
-            }
-        });
+                    @Override
+                    public void onFailed(int code) {
+                        authenDialog.undoLastSelect(); // 撤销选择
+                        DialogMaker.dismissProgressDialog();
+                        ToastHelper.showToast(AdvancedTeamInfoActivity.this,
+                                              String.format(getString(R.string.update_failed), code));
+                    }
+
+                    @Override
+                    public void onException(Throwable exception) {
+                        DialogMaker.dismissProgressDialog();
+                    }
+                });
     }
 
     /**
@@ -1225,26 +1278,29 @@ public class AdvancedTeamInfoActivity extends UI implements
      */
     private void updateInviteMode(final TeamInviteModeEnum type) {
         DialogMaker.showProgressDialog(this, getString(R.string.empty));
-        NIMClient.getService(TeamService.class).updateTeam(teamId, TeamFieldEnum.InviteMode, type).setCallback(new RequestCallback<Void>() {
-            @Override
-            public void onSuccess(Void param) {
-                DialogMaker.dismissProgressDialog();
-                updateInviteText(type);
-                ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
-            }
+        NIMClient.getService(TeamService.class).updateTeam(teamId, TeamFieldEnum.InviteMode, type).setCallback(
+                new RequestCallback<Void>() {
 
-            @Override
-            public void onFailed(int code) {
-                inviteDialog.undoLastSelect(); // 撤销选择
-                DialogMaker.dismissProgressDialog();
-                ToastHelper.showToast(AdvancedTeamInfoActivity.this, String.format(getString(R.string.update_failed), code));
-            }
+                    @Override
+                    public void onSuccess(Void param) {
+                        DialogMaker.dismissProgressDialog();
+                        updateInviteText(type);
+                        ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
+                    }
 
-            @Override
-            public void onException(Throwable exception) {
-                DialogMaker.dismissProgressDialog();
-            }
-        });
+                    @Override
+                    public void onFailed(int code) {
+                        inviteDialog.undoLastSelect(); // 撤销选择
+                        DialogMaker.dismissProgressDialog();
+                        ToastHelper.showToast(AdvancedTeamInfoActivity.this,
+                                              String.format(getString(R.string.update_failed), code));
+                    }
+
+                    @Override
+                    public void onException(Throwable exception) {
+                        DialogMaker.dismissProgressDialog();
+                    }
+                });
     }
 
     /**
@@ -1263,26 +1319,29 @@ public class AdvancedTeamInfoActivity extends UI implements
      */
     private void updateInfoUpdateMode(final TeamUpdateModeEnum type) {
         DialogMaker.showProgressDialog(this, getString(R.string.empty));
-        NIMClient.getService(TeamService.class).updateTeam(teamId, TeamFieldEnum.TeamUpdateMode, type).setCallback(new RequestCallback<Void>() {
-            @Override
-            public void onSuccess(Void param) {
-                DialogMaker.dismissProgressDialog();
-                updateInfoUpateText(type);
-                ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
-            }
+        NIMClient.getService(TeamService.class).updateTeam(teamId, TeamFieldEnum.TeamUpdateMode, type).setCallback(
+                new RequestCallback<Void>() {
 
-            @Override
-            public void onFailed(int code) {
-                teamInfoUpdateDialog.undoLastSelect(); // 撤销选择
-                DialogMaker.dismissProgressDialog();
-                ToastHelper.showToast(AdvancedTeamInfoActivity.this, String.format(getString(R.string.update_failed), code));
-            }
+                    @Override
+                    public void onSuccess(Void param) {
+                        DialogMaker.dismissProgressDialog();
+                        updateInfoUpateText(type);
+                        ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
+                    }
 
-            @Override
-            public void onException(Throwable exception) {
-                DialogMaker.dismissProgressDialog();
-            }
-        });
+                    @Override
+                    public void onFailed(int code) {
+                        teamInfoUpdateDialog.undoLastSelect(); // 撤销选择
+                        DialogMaker.dismissProgressDialog();
+                        ToastHelper.showToast(AdvancedTeamInfoActivity.this,
+                                              String.format(getString(R.string.update_failed), code));
+                    }
+
+                    @Override
+                    public void onException(Throwable exception) {
+                        DialogMaker.dismissProgressDialog();
+                    }
+                });
     }
 
     /**
@@ -1301,26 +1360,29 @@ public class AdvancedTeamInfoActivity extends UI implements
      */
     private void updateBeInvitedMode(final TeamBeInviteModeEnum type) {
         DialogMaker.showProgressDialog(this, getString(R.string.empty));
-        NIMClient.getService(TeamService.class).updateTeam(teamId, TeamFieldEnum.BeInviteMode, type).setCallback(new RequestCallback<Void>() {
-            @Override
-            public void onSuccess(Void param) {
-                DialogMaker.dismissProgressDialog();
-                updateBeInvitedText(type);
-                ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
-            }
+        NIMClient.getService(TeamService.class).updateTeam(teamId, TeamFieldEnum.BeInviteMode, type).setCallback(
+                new RequestCallback<Void>() {
 
-            @Override
-            public void onFailed(int code) {
-                teamInviteeDialog.undoLastSelect(); // 撤销选择
-                DialogMaker.dismissProgressDialog();
-                ToastHelper.showToast(AdvancedTeamInfoActivity.this, String.format(getString(R.string.update_failed), code));
-            }
+                    @Override
+                    public void onSuccess(Void param) {
+                        DialogMaker.dismissProgressDialog();
+                        updateBeInvitedText(type);
+                        ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
+                    }
 
-            @Override
-            public void onException(Throwable exception) {
-                DialogMaker.dismissProgressDialog();
-            }
-        });
+                    @Override
+                    public void onFailed(int code) {
+                        teamInviteeDialog.undoLastSelect(); // 撤销选择
+                        DialogMaker.dismissProgressDialog();
+                        ToastHelper.showToast(AdvancedTeamInfoActivity.this,
+                                              String.format(getString(R.string.update_failed), code));
+                    }
+
+                    @Override
+                    public void onException(Throwable exception) {
+                        DialogMaker.dismissProgressDialog();
+                    }
+                });
     }
 
     /**
@@ -1333,6 +1395,34 @@ public class AdvancedTeamInfoActivity extends UI implements
     }
 
     /**
+     * remove members
+     *
+     * @param accounts
+     */
+    private void removeMembers(List<String> accounts) {
+        if (accounts == null || accounts.size() == 0) {
+            return;
+        }
+        for (String account : accounts) {
+            memberAccounts.remove(account);
+            for (TeamMember m : members) {
+                if (m.getAccount().equals(account)) {
+                    members.remove(m);
+                    break;
+                }
+            }
+            for (TeamMemberItem item : dataSource) {
+                if (item.getAccount() != null && item.getAccount().equals(account)) {
+                    dataSource.remove(item);
+                    break;
+                }
+            }
+        }
+        memberCountText.setText(String.format("共%d人", members.size()));
+        adapter.notifyDataSetChanged();
+    }
+
+    /**
      * 移除群成员成功后，删除列表中的群成员
      *
      * @param account 被删除成员帐号
@@ -1341,24 +1431,20 @@ public class AdvancedTeamInfoActivity extends UI implements
         if (TextUtils.isEmpty(account)) {
             return;
         }
-
         memberAccounts.remove(account);
-
         for (TeamMember m : members) {
             if (m.getAccount().equals(account)) {
                 members.remove(m);
                 break;
             }
         }
-
-        memberCountText.setText(String.format("共%d人", members.size()));
-
         for (TeamMemberItem item : dataSource) {
             if (item.getAccount() != null && item.getAccount().equals(account)) {
                 dataSource.remove(item);
                 break;
             }
         }
+        memberCountText.setText(String.format("共%d人", members.size()));
         adapter.notifyDataSetChanged();
     }
 
@@ -1387,6 +1473,7 @@ public class AdvancedTeamInfoActivity extends UI implements
         if (register) {
             if (userInfoObserver == null) {
                 userInfoObserver = new UserInfoObserver() {
+
                     @Override
                     public void onUserInfoChanged(List<String> accounts) {
                         adapter.notifyDataSetChanged();
@@ -1406,46 +1493,48 @@ public class AdvancedTeamInfoActivity extends UI implements
         if (TextUtils.isEmpty(path)) {
             return;
         }
-
         File file = new File(path);
         if (file == null) {
             return;
         }
         DialogMaker.showProgressDialog(this, null, null, true, new DialogInterface.OnCancelListener() {
+
             @Override
             public void onCancel(DialogInterface dialog) {
                 cancelUpload(R.string.team_update_cancel);
             }
         }).setCanceledOnTouchOutside(true);
-
         LogUtil.i(TAG, "start upload icon, local file path=" + file.getAbsolutePath());
         new Handler().postDelayed(outimeTask, ICON_TIME_OUT);
         uploadFuture = NIMClient.getService(NosService.class).upload(file, PickImageAction.MIME_JPEG);
         uploadFuture.setCallback(new RequestCallbackWrapper<String>() {
+
             @Override
             public void onResult(int code, String url, Throwable exception) {
                 if (code == ResponseCode.RES_SUCCESS && !TextUtils.isEmpty(url)) {
                     LogUtil.i(TAG, "upload icon success, url =" + url);
+                    NIMClient.getService(TeamService.class).updateTeam(teamId, TeamFieldEnum.ICON, url).setCallback(
+                            new RequestCallback<Void>() {
 
-                    NIMClient.getService(TeamService.class).updateTeam(teamId, TeamFieldEnum.ICON, url).setCallback(new RequestCallback<Void>() {
-                        @Override
-                        public void onSuccess(Void param) {
-                            DialogMaker.dismissProgressDialog();
-                            ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
-                            onUpdateDone();
-                        }
+                                @Override
+                                public void onSuccess(Void param) {
+                                    DialogMaker.dismissProgressDialog();
+                                    ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.update_success);
+                                    onUpdateDone();
+                                }
 
-                        @Override
-                        public void onFailed(int code) {
-                            DialogMaker.dismissProgressDialog();
-                            ToastHelper.showToast(AdvancedTeamInfoActivity.this, String.format(getString(R.string.update_failed), code));
-                        }
+                                @Override
+                                public void onFailed(int code) {
+                                    DialogMaker.dismissProgressDialog();
+                                    ToastHelper.showToast(AdvancedTeamInfoActivity.this,
+                                                          String.format(getString(R.string.update_failed), code));
+                                }
 
-                        @Override
-                        public void onException(Throwable exception) {
-                            DialogMaker.dismissProgressDialog();
-                        }
-                    }); // 更新资料
+                                @Override
+                                public void onException(Throwable exception) {
+                                    DialogMaker.dismissProgressDialog();
+                                }
+                            }); // 更新资料
                 } else {
                     ToastHelper.showToast(AdvancedTeamInfoActivity.this, R.string.team_update_failed);
                     onUpdateDone();
@@ -1463,6 +1552,7 @@ public class AdvancedTeamInfoActivity extends UI implements
     }
 
     private Runnable outimeTask = new Runnable() {
+
         @Override
         public void run() {
             cancelUpload(R.string.team_update_failed);

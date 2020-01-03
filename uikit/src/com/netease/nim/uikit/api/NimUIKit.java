@@ -25,6 +25,7 @@ import com.netease.nim.uikit.api.model.user.IUserInfoProvider;
 import com.netease.nim.uikit.api.model.user.UserInfoObservable;
 import com.netease.nim.uikit.business.chatroom.viewholder.ChatRoomMsgViewHolderBase;
 import com.netease.nim.uikit.business.contact.selector.activity.ContactSelectActivity;
+import com.netease.nim.uikit.business.session.module.IMultiRetweetMsgCreator;
 import com.netease.nim.uikit.business.session.module.MsgForwardFilter;
 import com.netease.nim.uikit.business.session.module.MsgRevokeFilter;
 import com.netease.nim.uikit.business.session.viewholder.MsgViewHolderBase;
@@ -202,6 +203,15 @@ public class NimUIKit {
      */
     public static void registerMsgItemViewHolder(Class<? extends MsgAttachment> attach, Class<? extends MsgViewHolderBase> viewHolder) {
         NimUIKitImpl.registerMsgItemViewHolder(attach, viewHolder);
+    }
+
+    /**
+     * 注册合并转发消息的创造函数，函数需通过回调反馈创建结果
+     *
+     * @param creator 创建器
+     */
+    public static void registerCustomMsgCreator(IMultiRetweetMsgCreator creator){
+        NimUIKitImpl.registerCustomMsgCreator(creator);
     }
 
     /**
@@ -395,6 +405,7 @@ public class NimUIKit {
     public static void startContactSelector(Context context, ContactSelectActivity.Option option, int requestCode) {
         NimUIKitImpl.startContactSelector(context, option, requestCode);
     }
+
 
     /**
      * 打开讨论组或高级群资料页

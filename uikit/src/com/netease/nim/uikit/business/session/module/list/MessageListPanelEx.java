@@ -6,30 +6,32 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Handler;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.netease.nim.uikit.api.model.main.CustomPushContentProvider;
-import com.netease.nim.uikit.common.ToastHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.api.NimUIKit;
+import com.netease.nim.uikit.api.model.main.CustomPushContentProvider;
 import com.netease.nim.uikit.api.model.user.UserInfoObserver;
 import com.netease.nim.uikit.business.contact.selector.activity.ContactSelectActivity;
 import com.netease.nim.uikit.business.preference.UserPreferences;
 import com.netease.nim.uikit.business.robot.parser.elements.group.LinkElement;
+import com.netease.nim.uikit.business.session.activity.MsgSelectActivity;
 import com.netease.nim.uikit.business.session.activity.VoiceTrans;
 import com.netease.nim.uikit.business.session.audio.MessageAudioControl;
+import com.netease.nim.uikit.business.session.constant.Extras;
 import com.netease.nim.uikit.business.session.helper.MessageHelper;
 import com.netease.nim.uikit.business.session.helper.MessageListPanelHelper;
 import com.netease.nim.uikit.business.session.module.Container;
 import com.netease.nim.uikit.business.session.viewholder.robot.RobotLinkView;
 import com.netease.nim.uikit.common.CommonUtil;
+import com.netease.nim.uikit.common.ToastHelper;
 import com.netease.nim.uikit.common.ui.dialog.CustomAlertDialog;
 import com.netease.nim.uikit.common.ui.dialog.EasyAlertDialog;
 import com.netease.nim.uikit.common.ui.dialog.EasyAlertDialogHelper;
@@ -84,8 +86,10 @@ import java.util.Map;
 public class MessageListPanelEx {
     private final static String TAG = "MessageListPanelEx";
 
-    private static final int REQUEST_CODE_FORWARD_PERSON = 0x01;
-    private static final int REQUEST_CODE_FORWARD_TEAM = 0x02;
+    public static final int REQUEST_CODE_FORWARD_PERSON = 0x01;
+    public static final int REQUEST_CODE_FORWARD_TEAM = 0x02;
+    /** MsgSelectActivity的识别码 */
+    public static final int REQUEST_CODE_FORWARD_MULTI_RETWEET = 0x03;
 
     // container
     private Container container;
@@ -119,6 +123,8 @@ public class MessageListPanelEx {
     //而在发送消息后，list 需要滚动到底部，又会通过RequestFetchMoreListener 调用一次 loadFromLocal
     //所以消息会重复
     private boolean mIsInitFetchingLocal;
+
+    private boolean inSelectState = false;
 
     public MessageListPanelEx(Container container, View rootView, boolean recordOnly, boolean remote) {
         this(container, rootView, null, recordOnly, remote);
@@ -394,7 +400,7 @@ public class MessageListPanelEx {
                 return;
             }
             IMMessage message = notification.getMessage();
-            // 获取通知类型： 1表示是离线，2表示是漫游 ， 默认 0
+            // 获取通知类型： 1表示是离线，2表示是漫游 ，默认 0
             Log.i(TAG, "notification type = " + notification.getNotificationType());
 
             if (!container.account.equals(message.getSessionId())) {
@@ -767,7 +773,7 @@ public class MessageListPanelEx {
         }
     }
 
-    private class MsgItemEventListener implements MsgAdapter.ViewHolderEventListener {
+    private class MsgItemEventListener extends MsgAdapter.BaseViewHolderEventListener {
 
         @Override
         public void onFailedBtnClick(IMMessage message) {
@@ -892,6 +898,9 @@ public class MessageListPanelEx {
             }
             // 7 cancel upload attachment
             longClickItemCancelUpload(selectedItem, alertDialog);
+
+            // 8 multiple selection
+            longClickItemMultipleSelection(selectedItem, alertDialog);
         }
 
         private boolean enableRevokeButton(IMMessage selectedItem) {
@@ -1053,6 +1062,24 @@ public class MessageListPanelEx {
                     option.multi = false;
                     option.maxSelectNum = 1;
                     NimUIKit.startContactSelector(container.activity, option, REQUEST_CODE_FORWARD_TEAM);
+                }
+            });
+        }
+
+        // 长按菜单项--多选
+        private void longClickItemMultipleSelection(IMMessage selectedItem, CustomAlertDialog alertDialog) {
+            alertDialog.addItem(container.activity.getString(R.string.multiple_selection), new CustomAlertDialog.onSeparateItemClickListener() {
+                @Override
+                public void onClick() {
+                    int size = items.size();
+                    int selectedPosition = size - 1;
+                    for (int i = 0; i < size; ++i) {
+                        if (selectedItem.isTheSame(items.get(i))) {
+                            selectedPosition= i;
+                        }
+                    }
+
+                    MsgSelectActivity.startForResult(REQUEST_CODE_FORWARD_MULTI_RETWEET, container.activity, new ArrayList<>(items), container.sessionType, container.account, selectedPosition);
                 }
             });
         }
@@ -1247,17 +1274,20 @@ public class MessageListPanelEx {
         }
         switch (requestCode) {
             case REQUEST_CODE_FORWARD_TEAM:
-                doForwardMessage(selected.get(0), SessionTypeEnum.Team);
+                doForwardMessage(forwardMessage, selected.get(0), SessionTypeEnum.Team);
                 break;
             case REQUEST_CODE_FORWARD_PERSON:
-                doForwardMessage(selected.get(0), SessionTypeEnum.P2P);
+                doForwardMessage(forwardMessage, selected.get(0), SessionTypeEnum.P2P);
+                break;
+            case REQUEST_CODE_FORWARD_MULTI_RETWEET:
+                int typeExtra = data.getIntExtra(Extras.EXTRA_TYPE, SessionTypeEnum.None.getValue());
+                doForwardMessage((IMMessage) data.getSerializableExtra(Extras.EXTRA_DATA), selected.get(0), SessionTypeEnum.typeOfValue(typeExtra));
                 break;
         }
-
     }
 
     // 转发消息
-    private void doForwardMessage(final String sessionId, SessionTypeEnum sessionTypeEnum) {
+    private void doForwardMessage(IMMessage forwardMessage, final String sessionId, SessionTypeEnum sessionTypeEnum) {
         IMMessage message;
         if (forwardMessage.getMsgType() == MsgTypeEnum.robot) {
             message = buildForwardRobotMessage(sessionId, sessionTypeEnum);
@@ -1276,7 +1306,6 @@ public class MessageListPanelEx {
                 onMsgSend(message);
             }
         }
-
     }
 
     private IMMessage buildForwardRobotMessage(final String sessionId, SessionTypeEnum sessionTypeEnum) {
@@ -1287,7 +1316,6 @@ public class MessageListPanelEx {
             }
             return MessageBuilder.createTextMessage(sessionId, sessionTypeEnum, forwardMessage.getContent());
         }
-
         return null;
     }
 }

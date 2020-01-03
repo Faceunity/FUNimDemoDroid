@@ -1,15 +1,10 @@
 package com.netease.nim.uikit.business.recent;
 
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-
-import com.netease.nim.uikit.common.ToastHelper;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.api.NimUIKit;
@@ -21,6 +16,7 @@ import com.netease.nim.uikit.api.model.user.UserInfoObserver;
 import com.netease.nim.uikit.business.recent.adapter.RecentContactAdapter;
 import com.netease.nim.uikit.business.uinfo.UserInfoHelper;
 import com.netease.nim.uikit.common.CommonUtil;
+import com.netease.nim.uikit.common.ToastHelper;
 import com.netease.nim.uikit.common.badger.Badger;
 import com.netease.nim.uikit.common.fragment.TFragment;
 import com.netease.nim.uikit.common.ui.dialog.CustomAlertDialog;
@@ -52,9 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
-
-import static com.netease.nim.uikit.common.ui.dialog.CustomAlertDialog.onSeparateItemClickListener;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * 最近联系人列表(会话列表)
@@ -70,8 +65,6 @@ public class RecentContactsFragment extends TFragment {
     private RecyclerView recyclerView;
 
     private View emptyBg;
-
-    private TextView emptyHint;
 
     // data
     private List<RecentContact> items;
@@ -106,7 +99,6 @@ public class RecentContactsFragment extends TFragment {
         adapter.notifyDataSetChanged();
         boolean empty = items.isEmpty() && msgLoaded;
         emptyBg.setVisibility(empty ? View.VISIBLE : View.GONE);
-        emptyHint.setHint("还没有会话，在通讯录中找个人聊聊吧！");
     }
 
 
@@ -125,7 +117,6 @@ public class RecentContactsFragment extends TFragment {
     private void findViews() {
         recyclerView = findView(R.id.recycler_view);
         emptyBg = findView(R.id.emptyBg);
-        emptyHint = findView(R.id.message_list_empty_hint);
     }
 
     /**
@@ -142,8 +133,6 @@ public class RecentContactsFragment extends TFragment {
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.addOnItemTouchListener(touchListener);
-        // ios style
-        OverScrollDecoratorHelper.setUpOverScroll(recyclerView, OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
         // drop listener
         DropManager.getInstance().setDropListener(new DropManager.IDropListener() {
 
@@ -176,7 +165,7 @@ public class RecentContactsFragment extends TFragment {
             @Override
             public void onItemClick(RecentContact recent) {
                 if (recent.getSessionType() == SessionTypeEnum.SUPER_TEAM) {
-                    ToastHelper.showToast(getActivity(), "超大群开发者按需实现");
+                    ToastHelper.showToast(getActivity(), getString(R.string.super_team_impl_by_self));
                 } else if (recent.getSessionType() == SessionTypeEnum.Team) {
                     NimUIKit.startTeamSession(getActivity(), recent.getContactId());
                 } else if (recent.getSessionType() == SessionTypeEnum.P2P) {
@@ -220,13 +209,7 @@ public class RecentContactsFragment extends TFragment {
         }
     };
 
-    OnlineStateChangeObserver onlineStateChangeObserver = new OnlineStateChangeObserver() {
-
-        @Override
-        public void onlineStateChange(Set<String> accounts) {
-            notifyDataSetChanged();
-        }
-    };
+    OnlineStateChangeObserver onlineStateChangeObserver = accounts -> notifyDataSetChanged();
 
     private void registerOnlineStateChangeListener(boolean register) {
         if (!NimUIKitImpl.enableOnlineState()) {
@@ -240,63 +223,45 @@ public class RecentContactsFragment extends TFragment {
         CustomAlertDialog alertDialog = new CustomAlertDialog(getActivity());
         alertDialog.setTitle(UserInfoHelper.getUserTitleName(recent.getContactId(), recent.getSessionType()));
         String title = getString(R.string.main_msg_list_delete_chatting);
-        alertDialog.addItem(title, new onSeparateItemClickListener() {
-
-            @Override
-            public void onClick() {
-                // 删除会话，删除后，消息历史被一起删除
-                NIMClient.getService(MsgService.class).deleteRecentContact(recent);
-                NIMClient.getService(MsgService.class).clearChattingHistory(recent.getContactId(),
-                                                                            recent.getSessionType());
-                adapter.remove(position);
-                postRunnable(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        refreshMessages(true);
-                    }
-                });
-            }
+        alertDialog.addItem(title, () -> {
+            // 删除会话，删除后，消息历史被一起删除
+            NIMClient.getService(MsgService.class).deleteRecentContact(recent);
+            NIMClient.getService(MsgService.class).clearChattingHistory(recent.getContactId(), recent.getSessionType());
+            adapter.remove(position);
+            postRunnable(() -> refreshMessages(true));
         });
         title = (CommonUtil.isTagSet(recent, RECENT_TAG_STICKY) ? getString(
                 R.string.main_msg_list_clear_sticky_on_top) : getString(R.string.main_msg_list_sticky_on_top));
-        alertDialog.addItem(title, new onSeparateItemClickListener() {
-
-            @Override
-            public void onClick() {
-                if (CommonUtil.isTagSet(recent, RECENT_TAG_STICKY)) {
-                    CommonUtil.removeTag(recent, RECENT_TAG_STICKY);
-                } else {
-                    CommonUtil.addTag(recent, RECENT_TAG_STICKY);
-                }
-                NIMClient.getService(MsgService.class).updateRecent(recent);
-                refreshMessages(false);
+        alertDialog.addItem(title, () -> {
+            if (CommonUtil.isTagSet(recent, RECENT_TAG_STICKY)) {
+                CommonUtil.removeTag(recent, RECENT_TAG_STICKY);
+            } else {
+                CommonUtil.addTag(recent, RECENT_TAG_STICKY);
             }
+            NIMClient.getService(MsgService.class).updateRecent(recent);
+            refreshMessages(false);
         });
-        alertDialog.addItem("删除该聊天（仅服务器）", new onSeparateItemClickListener() {
+        String itemText = getString(R.string.delete_chat_only_server);
+        alertDialog.addItem(itemText, () -> NIMClient.getService(MsgService.class)
+                                                     .deleteRoamingRecentContact(recent.getContactId(),
+                                                                                 recent.getSessionType())
+                                                     .setCallback(new RequestCallback<Void>() {
 
-            @Override
-            public void onClick() {
-                NIMClient.getService(MsgService.class).deleteRoamingRecentContact(recent.getContactId(),
-                                                                                  recent.getSessionType()).setCallback(
-                        new RequestCallback<Void>() {
+                                                         @Override
+                                                         public void onSuccess(Void param) {
+                                                             ToastHelper.showToast(getActivity(), "delete success");
+                                                         }
 
-                            @Override
-                            public void onSuccess(Void param) {
-                                ToastHelper.showToast(getActivity(), "delete success");
-                            }
+                                                         @Override
+                                                         public void onFailed(int code) {
+                                                             ToastHelper.showToast(getActivity(),
+                                                                                   "delete failed, code:" + code);
+                                                         }
 
-                            @Override
-                            public void onFailed(int code) {
-                                ToastHelper.showToast(getActivity(), "delete failed, code:" + code);
-                            }
-
-                            @Override
-                            public void onException(Throwable exception) {
-                            }
-                        });
-            }
-        });
+                                                         @Override
+                                                         public void onException(Throwable exception) {
+                                                         }
+                                                     }));
         alertDialog.show();
     }
 
@@ -306,38 +271,34 @@ public class RecentContactsFragment extends TFragment {
         if (msgLoaded) {
             return;
         }
-        getHandler().postDelayed(new Runnable() {
+        getHandler().postDelayed(() -> {
+            if (msgLoaded) {
+                return;
+            }
+            // 查询最近联系人列表数据
+            NIMClient.getService(MsgService.class).queryRecentContacts().setCallback(
+                    new RequestCallbackWrapper<List<RecentContact>>() {
 
-            @Override
-            public void run() {
-                if (msgLoaded) {
-                    return;
-                }
-                // 查询最近联系人列表数据
-                NIMClient.getService(MsgService.class).queryRecentContacts().setCallback(
-                        new RequestCallbackWrapper<List<RecentContact>>() {
-
-                            @Override
-                            public void onResult(int code, List<RecentContact> recents, Throwable exception) {
-                                if (code != ResponseCode.RES_SUCCESS || recents == null) {
-                                    return;
-                                }
-                                loadedRecents = recents;
-                                // 初次加载，更新离线的消息中是否有@我的消息
-                                for (RecentContact loadedRecent : loadedRecents) {
-                                    if (loadedRecent.getSessionType() == SessionTypeEnum.Team) {
-                                        updateOfflineContactAited(loadedRecent);
-                                    }
-                                }
-                                // 此处如果是界面刚初始化，为了防止界面卡顿，可先在后台把需要显示的用户资料和群组资料在后台加载好，然后再刷新界面
-                                //
-                                msgLoaded = true;
-                                if (isAdded()) {
-                                    onRecentContactsLoaded();
+                        @Override
+                        public void onResult(int code, List<RecentContact> recents, Throwable exception) {
+                            if (code != ResponseCode.RES_SUCCESS || recents == null) {
+                                return;
+                            }
+                            loadedRecents = recents;
+                            // 初次加载，更新离线的消息中是否有@我的消息
+                            for (RecentContact loadedRecent : loadedRecents) {
+                                if (loadedRecent.getSessionType() == SessionTypeEnum.Team) {
+                                    updateOfflineContactAited(loadedRecent);
                                 }
                             }
-                        });
-            }
+                            // 此处如果是界面刚初始化，为了防止界面卡顿，可先在后台把需要显示的用户资料和群组资料在后台加载好，然后再刷新界面
+                            //
+                            msgLoaded = true;
+                            if (isAdded()) {
+                                onRecentContactsLoaded();
+                            }
+                        }
+                    });
         }, delay ? 250 : 0);
     }
 
@@ -381,18 +342,14 @@ public class RecentContactsFragment extends TFragment {
         Collections.sort(list, comp);
     }
 
-    private static Comparator<RecentContact> comp = new Comparator<RecentContact>() {
-
-        @Override
-        public int compare(RecentContact o1, RecentContact o2) {
-            // 先比较置顶tag
-            long sticky = (o1.getTag() & RECENT_TAG_STICKY) - (o2.getTag() & RECENT_TAG_STICKY);
-            if (sticky != 0) {
-                return sticky > 0 ? -1 : 1;
-            } else {
-                long time = o1.getTime() - o2.getTime();
-                return time == 0 ? 0 : (time > 0 ? -1 : 1);
-            }
+    private static Comparator<RecentContact> comp = (o1, o2) -> {
+        // 先比较置顶tag
+        long sticky = (o1.getTag() & RECENT_TAG_STICKY) - (o2.getTag() & RECENT_TAG_STICKY);
+        if (sticky != 0) {
+            return sticky > 0 ? -1 : 1;
+        } else {
+            long time = o1.getTime() - o2.getTime();
+            return time == 0 ? 0 : (time > 0 ? -1 : 1);
         }
     };
 

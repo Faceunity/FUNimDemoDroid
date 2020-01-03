@@ -27,12 +27,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true" />
 
-    <com.faceunity.beautycontrolview.BeautyControlView
-        android:id="@+id/faceunity_control"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/avchat_video_bottom_control" />
-
     <include
         android:id="@+id/avchat_record_layout"
         layout="@layout/avchat_record_layout"
@@ -50,5 +44,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone" />
+
+    <com.faceunity.beautycontrolview.BeautyControlView
+        android:id="@+id/beauty_control_view"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/x366"
+        android:layout_above="@id/avchat_video_bottom_control" />
 
 </RelativeLayout>

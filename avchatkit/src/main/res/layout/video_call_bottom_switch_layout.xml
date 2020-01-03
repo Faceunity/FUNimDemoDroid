@@ -20,15 +20,6 @@
         android:scaleType="centerInside"
         android:src="@drawable/avchat_switch_camera_bg" />
 
-    <ToggleButton
-        android:id="@+id/tb_make_up"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:background="@color/color_f2f7fc"
-        android:textOff="开美妆"
-        android:textOn="关美妆"
-        android:checked="false"/>
 
     <ImageView
         android:id="@+id/avchat_close_camera"

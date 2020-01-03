@@ -12,14 +12,6 @@
     <string name="load_failed">加载失败，请点我重试</string>
     <string name="load_end">没有更多数据</string>w
 
-    <string name="makeup_radio_remove">卸妆</string>
-    <string name="makeup_peach_blossom">桃花妆</string>
-    <string name="makeup_radio_lipstick">口红</string>
-    <string name="makeup_radio_blusher">腮红</string>
-    <string name="makeup_radio_eyebrow">眉毛</string>
-    <string name="makeup_radio_eye_shadow">眼影</string>
-    <string name="makeup_radio_eye_liner">眼线</string>
-
     <!-- video call -->
     <string name="avchat_hangup">结束通话</string>
     <string name="avchat_switch_to_video">切换视频</string>

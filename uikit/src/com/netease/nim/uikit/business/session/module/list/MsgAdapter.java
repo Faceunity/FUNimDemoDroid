@@ -1,8 +1,8 @@
 package com.netease.nim.uikit.business.session.module.list;
 
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.business.session.module.Container;
@@ -32,7 +32,7 @@ public class MsgAdapter extends BaseMultiItemFetchLoadAdapter<IMMessage, BaseVie
     private String messageId;
     private Container container;
 
-    MsgAdapter(RecyclerView recyclerView, List<IMMessage> data, Container container) {
+    public MsgAdapter(RecyclerView recyclerView, List<IMMessage> data, Container container) {
         super(recyclerView, data);
 
         timedItems = new HashSet<>();
@@ -236,6 +236,39 @@ public class MsgAdapter extends BaseMultiItemFetchLoadAdapter<IMMessage, BaseVie
 
         // viewholder footer按钮点击，如机器人继续会话
         void onFooterClick(IMMessage message);
+
+        /**
+         * 消息对应的复选框的状况变化时回调
+         * 状态: true: 选中; false: 未被选中; null: 选则无效（复选框不可见，且状态重置为未被选中）
+         *
+         * @param index 消息在列表中的位置
+         * @param newState 变化后的状态
+         */
+        void onCheckStateChanged(int index, Boolean newState);
+    }
+
+    /**
+     * 为了在实现ViewHolderEventListener时只需要复写需要的部分
+     */
+    public static class BaseViewHolderEventListener implements ViewHolderEventListener{
+
+        @Override
+        public boolean onViewHolderLongClick(View clickView, View viewHolderView, IMMessage item) {
+            return false;
+        }
+
+        @Override
+        public void onFailedBtnClick(IMMessage resendMessage) {
+        }
+
+        @Override
+        public void onFooterClick(IMMessage message) {
+        }
+
+        @Override
+        public void onCheckStateChanged(int index, Boolean newState) {
+
+        }
     }
 
     public void setUuid(String messageId) {

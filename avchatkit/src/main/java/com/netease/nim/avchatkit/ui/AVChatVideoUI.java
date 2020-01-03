@@ -4,7 +4,10 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
+import android.hardware.Camera;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -18,6 +21,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.faceunity.beautycontrolview.BeautyControlView;
+import com.faceunity.beautycontrolview.FURenderer;
+import com.faceunity.beautycontrolview.OnFaceUnityControlListener;
 import com.netease.nim.avchatkit.AVChatKit;
 import com.netease.nim.avchatkit.R;
 import com.netease.nim.avchatkit.common.imageview.HeadImageView;
@@ -39,6 +45,8 @@ import com.netease.nimlib.sdk.avchat.video.AVChatSurfaceViewRenderer;
 import com.netease.nrtc.video.render.IVideoRender;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 视频界面变化及点击事件
@@ -133,6 +141,9 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
     private AVChatController avChatController;
     private AVSwitchListener avSwitchListener;
     private boolean isReleasedVideo = false;
+    private BeautyControlView mBeautyControlView;
+    private FURenderer mFURenderer;
+    private Handler mRenderHandler;
 
     // touch zone
     public interface TouchZoneCallback {
@@ -151,6 +162,14 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         this.avSwitchListener = avSwitchListener;
         this.smallRender = new AVChatSurfaceViewRenderer(context);
         this.largeRender = new AVChatSurfaceViewRenderer(context);
+    }
+
+    public void setFUController(FURenderer fuRenderer, Handler renderHandler) {
+        mFURenderer = fuRenderer;
+        mRenderHandler = renderHandler;
+        if (mBeautyControlView != null) {
+            mBeautyControlView.setOnFaceUnityControlListener(fuRenderer);
+        }
     }
 
     /**
@@ -316,6 +335,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         recordWarning = recordView.findViewById(R.id.avchat_record_warning);
 
         bottomRoot = videoRoot.findViewById(R.id.avchat_video_bottom_control);
+        mBeautyControlView = videoRoot.findViewById(R.id.beauty_control_view);
 
         switchCameraToggle = new ToggleView(bottomRoot.findViewById(R.id.avchat_switch_camera), ToggleState.DISABLE, this);
         closeCameraToggle = new ToggleView(bottomRoot.findViewById(R.id.avchat_close_camera), ToggleState.DISABLE, this);
@@ -358,6 +378,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         setTopRoot(false);
         setMiddleRoot(true);
         setBottomRoot(false);
+        setFaceUnityRoot(false);
     }
 
     public void doOutgoingCall(String account) {
@@ -374,6 +395,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         setTopRoot(false);
         setMiddleRoot(true);
         setBottomRoot(true);
+        setFaceUnityRoot(true);
 
         avChatController.doCalling(account, AVChatType.VIDEO, new AVChatControllerCallback<AVChatData>() {
             @Override
@@ -406,6 +428,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         setTopRoot(true);
         setMiddleRoot(false);
         setBottomRoot(true);
+        setFaceUnityRoot(true);
         showNoneCameraPermissionView(false);
     }
 
@@ -480,6 +503,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         setTopRoot(true);
         setMiddleRoot(false);
         setBottomRoot(true);
+        setFaceUnityRoot(true);
 
         showRecordView(avChatController.isRecording(), isRecordWarning);
     }
@@ -550,6 +574,14 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         if (bottomRootHeight == 0) {
             bottomRootHeight = bottomRoot.getHeight();
         }
+    }
+
+    private void setFaceUnityRoot(boolean visible) {
+        if (mBeautyControlView == null) {
+            return;
+        }
+
+        mBeautyControlView.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
     // 底部控制开关可用
@@ -632,7 +664,8 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         } else if (i == R.id.avchat_video_mute) {
             avChatController.toggleMute();
         } else if (i == R.id.avchat_switch_camera) {
-            avChatController.switchCamera();
+            int cameraFacing = avChatController.switchCamera();
+            mFURenderer.onCameraChange(cameraFacing, cameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? 270 : 90);
         } else if (i == R.id.avchat_close_camera) {
             closeCamera();
         } else if (i == R.id.avchat_video_record) {
@@ -683,6 +716,24 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         if (isReleasedVideo) {
             return;
         }
+
+        if (mRenderHandler != null) {
+            final CountDownLatch countDownLatch = new CountDownLatch(1);
+            mRenderHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mFURenderer.onSurfaceDestroyed();
+                    countDownLatch.countDown();
+                }
+            });
+            try {
+                countDownLatch.await(1000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            mRenderHandler = null;
+        }
+
         isReleasedVideo = true;
         AVChatManager.getInstance().stopVideoPreview();
         AVChatManager.getInstance().disableVideo();

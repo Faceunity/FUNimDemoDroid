@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
+//import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
 
 
 /**
@@ -175,7 +175,7 @@ public class ContactsFragment extends TFragment {
         listView.setOnItemLongClickListener(listener);
 
         // ios style
-        OverScrollDecoratorHelper.setUpOverScroll(listView);
+//        OverScrollDecoratorHelper.setUpOverScroll(listView);
     }
 
     private void buildLitterIdx(View view) {

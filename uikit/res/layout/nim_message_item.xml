@@ -20,12 +20,23 @@
         android:textStyle="bold"
         android:visibility="gone" />
 
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/message_item_multi_check_box"
+        android:layout_width="@dimen/avatar_size_in_session"
+        android:layout_height="@dimen/avatar_size_in_session"
+        android:layout_below="@id/message_item_time"
+        android:layout_alignParentLeft="true"
+        android:layout_marginRight="@dimen/bubble_head_margin_horizontal"
+        android:enabled="true"
+        android:visibility="gone"
+        />
+
     <com.netease.nim.uikit.common.ui.imageview.HeadImageView
         android:id="@+id/message_item_portrait_left"
         android:layout_width="@dimen/avatar_size_in_session"
         android:layout_height="@dimen/avatar_size_in_session"
-        android:layout_alignParentLeft="true"
         android:layout_below="@id/message_item_time"
+        android:layout_toRightOf="@id/message_item_multi_check_box"
         android:layout_marginRight="@dimen/bubble_head_margin_horizontal"
         android:visibility="gone" />
 

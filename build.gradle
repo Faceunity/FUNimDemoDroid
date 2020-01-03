@@ -11,18 +11,18 @@ allprojects {
         jcenter()
         mavenCentral()
         maven { url 'http://developer.huawei.com/repo' }
-        maven { url 'https://fabric-artifacts.s3.amazonaws.com/public' }
+        maven { url "https://jitpack.io" }
     }
 }
 
 ext {
-    compileSdkVersion = 26
+    compileSdkVersion = 28
     buildToolsVersion = '28.0.3'
-    minSdkVersion = 14
-    targetSdkVersion = 26
-    appTargetSdkVersion = 26
-    versionCode = 66
-    versionName = '6.6.0'
+    minSdkVersion = 16
+    targetSdkVersion = 28
+    appTargetSdkVersion = 28
+    versionCode = 75
+    versionName = '7.1.0'
     sdkSourceCompatibility = 1.8
     sdkTargetCompatibility = 1.8
     appSourceCompatibility = 1.8

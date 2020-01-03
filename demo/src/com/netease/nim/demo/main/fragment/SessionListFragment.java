@@ -14,6 +14,7 @@ import com.netease.nim.demo.main.model.MainTab;
 import com.netease.nim.demo.main.reminder.ReminderManager;
 import com.netease.nim.demo.session.SessionHelper;
 import com.netease.nim.demo.session.extension.GuessAttachment;
+import com.netease.nim.demo.session.extension.MultiRetweetAttachment;
 import com.netease.nim.demo.session.extension.RTSAttachment;
 import com.netease.nim.demo.session.extension.RedPacketAttachment;
 import com.netease.nim.demo.session.extension.RedPacketOpenedAttachment;
@@ -241,6 +242,8 @@ public class SessionListFragment extends MainTabFragment {
                     return "[红包]";
                 } else if (attachment instanceof RedPacketOpenedAttachment) {
                     return ((RedPacketOpenedAttachment) attachment).getDesc(recentContact.getSessionType(), recentContact.getContactId());
+                } else if (attachment instanceof MultiRetweetAttachment){
+                    return "[聊天记录]";
                 }
 
                 return null;

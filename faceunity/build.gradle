@@ -7,8 +7,8 @@ android {
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.appTargetSdkVersion
-        versionCode 1
-        versionName "6.0.0_dev_tf_phy-3938b3e9-16d49df-47a70ba"
+        versionCode 640
+        versionName "6.4.0"
     }
 
     buildTypes {
@@ -26,7 +26,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.android.support:recyclerview-v7:26.1.0'
+    implementation("androidx.appcompat:appcompat:${ANDROIDX_APPCOMPAT_VERSION}")
+    implementation("androidx.recyclerview:recyclerview:${RECYCLER_VIEW_X_VERSION}")
     implementation 'de.hdodenhof:circleimageview:3.0.0'
 }

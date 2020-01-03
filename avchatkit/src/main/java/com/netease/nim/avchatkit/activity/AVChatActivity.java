@@ -2,22 +2,18 @@ package com.netease.nim.avchatkit.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.Camera;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.CompoundButton;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
-import com.faceunity.beautycontrolview.BeautyControlView;
 import com.faceunity.beautycontrolview.FURenderer;
-import com.faceunity.beautycontrolview.FilterEnum;
-import com.faceunity.beautycontrolview.entity.FaceMakeup;
 import com.netease.nim.avchatkit.AVChatKit;
 import com.netease.nim.avchatkit.AVChatProfile;
 import com.netease.nim.avchatkit.R;
@@ -26,7 +22,6 @@ import com.netease.nim.avchatkit.common.log.LogUtil;
 import com.netease.nim.avchatkit.constant.AVChatExitCode;
 import com.netease.nim.avchatkit.controll.AVChatController;
 import com.netease.nim.avchatkit.controll.AVChatSoundPlayer;
-import com.netease.nim.avchatkit.entity.FaceMakeupEnum;
 import com.netease.nim.avchatkit.module.AVChatTimeoutObserver;
 import com.netease.nim.avchatkit.module.AVSwitchListener;
 import com.netease.nim.avchatkit.module.SimpleAVChatStateObserver;
@@ -34,7 +29,7 @@ import com.netease.nim.avchatkit.notification.AVChatNotification;
 import com.netease.nim.avchatkit.receiver.PhoneCallStateObserver;
 import com.netease.nim.avchatkit.ui.AVChatAudioUI;
 import com.netease.nim.avchatkit.ui.AVChatVideoUI;
-import com.netease.nim.avchatkit.utils.PreferenceUtil;
+import com.netease.nim.avchatkit.util.PreferenceUtil;
 import com.netease.nimlib.sdk.NIMClient;
 import com.netease.nimlib.sdk.Observer;
 import com.netease.nimlib.sdk.StatusCode;
@@ -42,7 +37,6 @@ import com.netease.nimlib.sdk.auth.AuthServiceObserver;
 import com.netease.nimlib.sdk.auth.ClientType;
 import com.netease.nimlib.sdk.avchat.AVChatManager;
 import com.netease.nimlib.sdk.avchat.constant.AVChatControlCommand;
-import com.netease.nimlib.sdk.avchat.constant.AVChatDeviceEvent;
 import com.netease.nimlib.sdk.avchat.constant.AVChatEventType;
 import com.netease.nimlib.sdk.avchat.constant.AVChatType;
 import com.netease.nimlib.sdk.avchat.model.AVChatAudioFrame;
@@ -51,9 +45,9 @@ import com.netease.nimlib.sdk.avchat.model.AVChatCommonEvent;
 import com.netease.nimlib.sdk.avchat.model.AVChatControlEvent;
 import com.netease.nimlib.sdk.avchat.model.AVChatData;
 import com.netease.nimlib.sdk.avchat.model.AVChatOnlineAckEvent;
-import com.netease.nimlib.sdk.avchat.model.AVChatVideoFrame;
-
-import java.util.List;
+import com.netease.nrtc.sdk.common.VideoFilterParameter;
+import com.netease.nrtc.sdk.video.VideoFrame;
+import com.netease.nrtc.video.coding.VideoFrameFormat;
 
 /**
  * 音视频主界面
@@ -104,13 +98,13 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
     private AVChatAudioUI avChatAudioUI; // 音频界面
     private AVChatVideoUI avChatVideoUI; // 视频界面
 
-    private FURenderer mFURenderer;
-    private String isOpen;
-    private ToggleButton tb_make_up;
-    private List<FaceMakeup> faceMakeupList;
-    private BeautyControlView beautyControlView;
     // notification
     private AVChatNotification notifier;
+
+    // 美颜处理类
+    private FURenderer mFURenderer;
+    private boolean mIsFirstFrame = true;
+    private boolean mFaceUnityIsOn;
 
     // 拨打电话
     public static void outgoingCall(Context context, String account, String displayName, int callType, int source) {
@@ -141,6 +135,10 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mFaceUnityIsOn = TextUtils.equals(PreferenceUtil.VALUE_ON, PreferenceUtil.getString(this, PreferenceUtil.KEY_FACEUNITY_IS_ON));
+        if (mFaceUnityIsOn) {
+            FURenderer.initFURenderer(this);
+        }
         super.onCreate(savedInstanceState);
         // 若来电或去电未接通时，点击home。另外一方挂断通话。从最近任务列表恢复，则finish
         if (needFinish) {
@@ -166,9 +164,6 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
 
         notifier = new AVChatNotification(this);
         notifier.init(receiverId != null ? receiverId : avChatData.getAccount(), displayName);
-
-        // face unity
-        initFaceU();
     }
 
     @Override
@@ -224,7 +219,6 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         registerObserves(false);
         AVChatProfile.getInstance().setAVChatting(false);
         cancelCallingNotifier();
-        destroyFaceU();
         needFinish = true;
     }
 
@@ -324,6 +318,9 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
 
     // 通话过程状态监听
     private SimpleAVChatStateObserver avchatStateObserver = new SimpleAVChatStateObserver() {
+        private byte[] mI420Byte;
+        private byte[] mReadback;
+
         @Override
         public void onAVRecordingCompletion(String account, String filePath) {
             if (account != null && filePath != null && filePath.length() > 0) {
@@ -367,6 +364,8 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         public void onJoinedChannel(int code, String audioFile, String videoFile, int i) {
             LogUtil.d(TAG, "audioFile -> " + audioFile + " videoFile -> " + videoFile);
             handleWithConnectServerResult(code);
+
+            mIsFirstFrame = true;
         }
 
         @Override
@@ -389,8 +388,9 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
             LogUtil.d(TAG, "onCallEstablished");
             //移除超时监听
             AVChatTimeoutObserver.getInstance().observeTimeoutNotification(timeoutObserver, false, mIsInComingCall);
-            if (avChatController.getTimeBase() == 0)
+            if (avChatController.getTimeBase() == 0) {
                 avChatController.setTimeBase(SystemClock.elapsedRealtime());
+            }
 
             if (state == AVChatType.AUDIO.getValue()) {
                 avChatAudioUI.showAudioInitLayout();
@@ -402,37 +402,55 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
             isCallEstablished = true;
         }
 
-        private boolean isSwitching;
-
-        private final Object lock = new Object();
-
-        private int cameraFacing = Camera.CameraInfo.CAMERA_FACING_FRONT;
-
         @Override
-        public void onDeviceEvent(int code, String desc) {
-            super.onDeviceEvent(code, desc);
-            synchronized (lock) {
-                if (code == AVChatDeviceEvent.VIDEO_CAMERA_SWITCH_OK) {
-                    isSwitching = true;
-                } else if (code == AVChatDeviceEvent.VIDEO_CAMERA_OPENED && isSwitching) {
-                    isSwitching = false;
-                    cameraFacing = (cameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? Camera.CameraInfo.CAMERA_FACING_BACK : Camera.CameraInfo.CAMERA_FACING_FRONT);
+        public boolean onVideoFrameFilter(VideoFrame input, VideoFrame[] outputFrames, VideoFilterParameter filterParameter) {
+            VideoFrame.Buffer buffer = input.getBuffer();
+            int width = buffer.getWidth();
+            int height = buffer.getHeight();
+            int rotation = input.getRotation();
+            int format = buffer.getFormat();
+
+            if (mFaceUnityIsOn) {
+                if (mIsFirstFrame) {
+                    Handler renderHandler = new Handler(Looper.myLooper());
+                    mFURenderer = new FURenderer.Builder(AVChatActivity.this)
+                            .createEGLContext(true)
+                            .build();
+                    avChatVideoUI.setFUController(mFURenderer, renderHandler);
+                    mFURenderer.onSurfaceCreated();
+                    mIsFirstFrame = false;
                 }
-            }
-        }
 
-
-        @Override
-        public boolean onVideoFrameFilter(AVChatVideoFrame frame, boolean maybeDualInput) {
-            if (mFURenderer != null) {
-                synchronized (lock) {
-                    if (isSwitching) {
-                        return true;
+                // I420 格式
+                if (format == VideoFrameFormat.kVideoI420) {
+                    int byteSize = 0;
+                    if (mI420Byte == null) {
+                        byteSize = width * height * 3 / 2;
+                        mI420Byte = new byte[byteSize];
                     }
-                    mFURenderer.onDrawFrame(frame.data, frame.width,
-                            frame.height, cameraFacing);
+                    buffer.toBytes(mI420Byte);
+                    if (mReadback == null) {
+                        mReadback = new byte[byteSize];
+                    }
+                    // 美颜滤镜
+                    mFURenderer.onDrawFrameSingleInput(mI420Byte, width, height, mReadback, width, height, FURenderer.INPUT_I420);
+                    // 数据回传
+                    try {
+                        VideoFrame.Buffer outputBuffer = VideoFrame.asBuffer(mReadback, format, width, height);
+                        VideoFrame.Buffer rotatedBuffer = outputBuffer.rotate(filterParameter.frameRotation);
+                        VideoFrame outputFrame = new VideoFrame(rotatedBuffer, rotation, input.getTimestampMs());
+                        outputFrames[0] = outputFrame;
+                        outputBuffer.release();
+                    } catch (IllegalAccessException e) {
+                        Log.e(TAG, "onVideoFrameFilter: ", e);
+                    }
                 }
+            } else {
+                VideoFrame.Buffer rotatedBuffer = buffer.rotate(filterParameter.frameRotation);
+                VideoFrame outputFrame = new VideoFrame(rotatedBuffer, rotation, input.getTimestampMs());
+                outputFrames[0] = outputFrame;
             }
+            input.release();
 
             return true;
         }
@@ -696,48 +714,9 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         super.finish();
     }
 
-    /**
-     * ******************************** face unity 接入 ********************************
-     */
+    @Override
+    public void onTouch() {
 
-    private void initFaceU() {
-        isOpen = PreferenceUtil.getString(this, PreferenceUtil.KEY_FACEUNITY_ISON);
-        tb_make_up = root.findViewById(R.id.tb_make_up);
-        beautyControlView = (BeautyControlView) findViewById(R.id.faceunity_control);
-
-        if (isOpen.equals("false")) {
-            tb_make_up.setVisibility(View.GONE);
-            beautyControlView.setVisibility(View.GONE);
-            return;
-        }
-
-        faceMakeupList = FaceMakeupEnum.getBeautyFaceMakeup();
-        tb_make_up.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    tb_make_up.setChecked(true);
-                    //需要开美颜
-                    mFURenderer.onFilterLevelSelected(1.0f);
-                    mFURenderer.onFilterSelected(FilterEnum.fennen3.filter());
-                    mFURenderer.onLightMakeupBatchSelected(faceMakeupList.get(1).getMakeupItems());
-                } else {
-                    tb_make_up.setChecked(false);
-                    mFURenderer.onFilterSelected(FilterEnum.nature.filter());
-                    mFURenderer.onLightMakeupBatchSelected(faceMakeupList.get(0).getMakeupItems());
-                }
-            }
-        });
-
-        mFURenderer = new FURenderer.Builder(this).createEGLContext(true).build();
-        mFURenderer.loadItems();
-
-        beautyControlView.setOnFaceUnityControlListener(mFURenderer);
-    }
-
-    private void destroyFaceU() {
-        if (mFURenderer != null)
-            mFURenderer.destroyItems();
     }
 
     // 主动挂断
@@ -763,8 +742,4 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         }
     }
 
-    @Override
-    public void onTouch() {
-
-    }
 }

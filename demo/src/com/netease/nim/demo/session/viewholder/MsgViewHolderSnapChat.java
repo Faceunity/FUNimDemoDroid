@@ -35,12 +35,12 @@ public class MsgViewHolderSnapChat extends MsgViewHolderBase {
     }
 
     @Override
-    protected int getContentResId() {
+    public int getContentResId() {
         return R.layout.nim_message_item_snapchat;
     }
 
     @Override
-    protected void inflateContentView() {
+    public void inflateContentView() {
         thumbnailImageView = (ImageView) view.findViewById(R.id.message_item_snap_chat_image);
         progressBar = findViewById(R.id.message_item_thumb_progress_bar); // 覆盖掉
         progressCover = findViewById(R.id.message_item_thumb_progress_cover);
@@ -48,7 +48,7 @@ public class MsgViewHolderSnapChat extends MsgViewHolderBase {
     }
 
     @Override
-    protected void bindContentView() {
+    public void bindContentView() {
         contentContainer.setOnTouchListener(onTouchListener);
 
         layoutByDirection();

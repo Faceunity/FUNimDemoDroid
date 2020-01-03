@@ -24,18 +24,18 @@ public class MsgViewHolderSticker extends MsgViewHolderBase {
     }
 
     @Override
-    protected int getContentResId() {
+    public int getContentResId() {
         return R.layout.nim_message_item_sticker;
     }
 
     @Override
-    protected void inflateContentView() {
+    public void inflateContentView() {
         baseView = findViewById(R.id.message_item_sticker_image);
         baseView.setMaxWidth(MsgViewHolderThumbBase.getImageMaxEdge());
     }
 
     @Override
-    protected void bindContentView() {
+    public void bindContentView() {
         StickerAttachment attachment = (StickerAttachment) message.getAttachment();
         if (attachment == null) {
             return;

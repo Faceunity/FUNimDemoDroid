@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -22,6 +23,7 @@ import com.netease.nim.uikit.common.util.sys.TimeUtil;
 import com.netease.nim.uikit.impl.NimUIKitImpl;
 import com.netease.nimlib.sdk.NIMClient;
 import com.netease.nimlib.sdk.NIMSDK;
+import com.netease.nimlib.sdk.RequestCallback;
 import com.netease.nimlib.sdk.msg.MsgService;
 import com.netease.nimlib.sdk.msg.attachment.FileAttachment;
 import com.netease.nimlib.sdk.msg.constant.MsgDirectionEnum;
@@ -44,6 +46,7 @@ public abstract class MsgViewHolderBase extends RecyclerViewHolder<BaseMultiItem
     protected View view;
     protected Context context;
     protected BaseMultiItemFetchLoadAdapter adapter;
+    protected int layoutPosition;
 
     // data
     protected IMMessage message;
@@ -61,6 +64,9 @@ public abstract class MsgViewHolderBase extends RecyclerViewHolder<BaseMultiItem
     private HeadImageView avatarLeft;
     private HeadImageView avatarRight;
 
+    /** 合并转发用多选框 */
+    private CheckBox multiCheckBox;
+
     public ImageView nameIconView;
 
     // contentContainerView的默认长按事件。如果子类需要不同的处理，可覆盖onItemLongClick方法
@@ -69,10 +75,10 @@ public abstract class MsgViewHolderBase extends RecyclerViewHolder<BaseMultiItem
 
     /// -- 以下接口可由子类覆盖或实现
     // 返回具体消息类型内容展示区域的layout res id
-    abstract protected int getContentResId();
+    abstract public int getContentResId();
 
     // 在该接口中根据layout对各控件成员变量赋值
-    abstract protected void inflateContentView();
+    abstract public void inflateContentView();
 
     // 在该接口操作BaseViewHolder中的数据，进行事件绑定，可选
     protected void bindHolder(BaseViewHolder holder) {
@@ -80,10 +86,10 @@ public abstract class MsgViewHolderBase extends RecyclerViewHolder<BaseMultiItem
     }
 
     // 将消息数据项与内容的view进行绑定
-    abstract protected void bindContentView();
+    abstract public void bindContentView();
 
     // 内容区域点击事件响应处理。
-    protected void onItemClick() {
+    public void onItemClick() {
     }
 
     // 内容区域长按事件响应处理。该接口的优先级比adapter中有长按事件的处理监听高，当该接口返回为true时，adapter的长按事件监听不会被调用到。
@@ -134,9 +140,9 @@ public abstract class MsgViewHolderBase extends RecyclerViewHolder<BaseMultiItem
     /**
      * 下载附件/缩略图
      */
-    protected void downloadAttachment() {
+    protected void downloadAttachment(RequestCallback<Void> callback) {
         if (message.getAttachment() != null && message.getAttachment() instanceof FileAttachment)
-            NIMClient.getService(MsgService.class).downloadAttachment(message, true);
+            NIMClient.getService(MsgService.class).downloadAttachment(message, true).setCallback(callback);
     }
 
     // 设置FrameLayout子控件的gravity参数
@@ -171,16 +177,40 @@ public abstract class MsgViewHolderBase extends RecyclerViewHolder<BaseMultiItem
         view = holder.getConvertView();
         context = holder.getContext();
         message = data;
+        layoutPosition = holder.getLayoutPosition();
 
         inflate();
         refresh();
         bindHolder(holder);
     }
 
+    public void initParameter(View itemView, Context context, IMMessage data, int position) {
+        view = itemView;
+        this.context = context;
+        message = data;
+        layoutPosition = position;
+
+
+
+        timeTextView = new TextView(context);
+        avatarLeft = new HeadImageView(context);
+        avatarRight = new HeadImageView(context);
+        multiCheckBox = new CheckBox(context);
+        alertButton = new View(context);
+        progressBar = new ProgressBar(context);
+        nameTextView = new TextView(context);
+        contentContainer = new FrameLayout(context);
+        nameIconView = new ImageView(context);
+        nameContainer = new LinearLayout(context);
+        readReceiptTextView = new TextView(context);
+        ackMsgTextView = new TextView(context);
+    }
+
     protected final void inflate() {
         timeTextView = findViewById(R.id.message_item_time);
         avatarLeft = findViewById(R.id.message_item_portrait_left);
         avatarRight = findViewById(R.id.message_item_portrait_right);
+        multiCheckBox = findViewById(R.id.message_item_multi_check_box);
         alertButton = findViewById(R.id.message_item_alert);
         progressBar = findViewById(R.id.message_item_progress);
         nameTextView = findViewById(R.id.message_item_nickname);
@@ -207,7 +237,7 @@ public abstract class MsgViewHolderBase extends RecyclerViewHolder<BaseMultiItem
         setContent();
         setReadReceipt();
         setAckMsg();
-
+        setMultiCheckBox();
         bindContentView();
     }
 
@@ -289,6 +319,8 @@ public abstract class MsgViewHolderBase extends RecyclerViewHolder<BaseMultiItem
                 onItemClick();
             }
         });
+
+        multiCheckBox.setOnClickListener((v) -> getMsgAdapter().getEventListener().onCheckStateChanged(layoutPosition, multiCheckBox.isChecked()));
 
         // 头像点击事件响应
         if (NimUIKitImpl.getSessionListener() != null) {
@@ -415,6 +447,16 @@ public abstract class MsgViewHolderBase extends RecyclerViewHolder<BaseMultiItem
             }
         } else {
             ackMsgTextView.setVisibility(View.GONE);
+        }
+    }
+
+    private void setMultiCheckBox() {
+        Boolean selectState = message.isChecked();
+        multiCheckBox.setVisibility(selectState == null ? View.GONE : View.VISIBLE);
+        if (Boolean.TRUE.equals(selectState)) {
+            multiCheckBox.setChecked(true);
+        } else if (Boolean.FALSE.equals(selectState)) {
+            multiCheckBox.setChecked(false);
         }
     }
 }

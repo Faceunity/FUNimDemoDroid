@@ -25,17 +25,17 @@ public class MsgViewHolderText extends MsgViewHolderBase {
     }
 
     @Override
-    protected int getContentResId() {
+    public int getContentResId() {
         return R.layout.nim_message_item_text;
     }
 
     @Override
-    protected void inflateContentView() {
+    public void inflateContentView() {
         bodyTextView = findViewById(R.id.nim_message_item_text_body);
     }
 
     @Override
-    protected void bindContentView() {
+    public void bindContentView() {
         layoutDirection();
         bodyTextView.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -75,6 +75,7 @@
     <string name="message_p2p_clear_tips">确定清空点对点历史消息?</string>
     <string name="sure_keep_roam">确认单保留漫游</string>
     <string name="message_info">聊天信息</string>
+    <string name="avchat_list">音视频通话记录</string>
 
     <!-- 通讯录 -->
     <string name="add_friend">加为好友</string>
@@ -231,5 +232,7 @@
     <string name="ack_msg_info">消息已读详情</string>
     <string name="ack_msg_tip">已读回执能力支持文本、图片、音频、视频、文件、自定义等消息类型。此处仅以文本消息作为演示，开发者可以根据具体业务场景进行功能设计。</string>
     <string name="down_time_enable_notification">免打扰期间显示通知</string>
+    <string name="independent_mode_error">独立AppKey模式，appKey不能为空</string>
+    <string name="appkey_cannot_empty">appKey不能为空</string>
 
 </resources>

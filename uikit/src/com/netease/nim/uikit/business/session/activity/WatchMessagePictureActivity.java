@@ -8,9 +8,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,11 +15,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import com.netease.nim.uikit.common.ToastHelper;
+
+import androidx.core.view.ViewCompat;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import com.bumptech.glide.Glide;
 import com.netease.nim.uikit.R;
 import com.netease.nim.uikit.api.wrapper.NimToolBarOptions;
+import com.netease.nim.uikit.common.ToastHelper;
 import com.netease.nim.uikit.common.activity.ToolBarOptions;
 import com.netease.nim.uikit.common.activity.UI;
 import com.netease.nim.uikit.common.ui.dialog.CustomAlertDialog;
@@ -64,7 +65,7 @@ public class WatchMessagePictureActivity extends UI {
     private static final String INTENT_EXTRA_IMAGE = "INTENT_EXTRA_IMAGE";
     private static final String INTENT_EXTRA_MENU = "INTENT_EXTRA_MENU";
 
-    private static final int MODE_NOMARL = 0;
+    private static final int MODE_NORMAL = 0;
     private static final int MODE_GIF = 1;
 
     private Handler handler;
@@ -122,7 +123,7 @@ public class WatchMessagePictureActivity extends UI {
 
     private void handleIntent() {
         this.message = (IMMessage) getIntent().getSerializableExtra(INTENT_EXTRA_IMAGE);
-        mode = ImageUtil.isGif(((ImageAttachment) message.getAttachment()).getExtension()) ? MODE_GIF : MODE_NOMARL;
+        mode = ImageUtil.isGif(((ImageAttachment) message.getAttachment()).getExtension()) ? MODE_GIF : MODE_NORMAL;
         setTitle(message);
         isShowMenu = getIntent().getBooleanExtra(INTENT_EXTRA_MENU, true);
     }
@@ -149,12 +150,8 @@ public class WatchMessagePictureActivity extends UI {
         TextView menuBtn = findView(R.id.actionbar_menu);
         if (isShowMenu) {
             menuBtn.setVisibility(View.VISIBLE);
-            menuBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    WatchPicAndVideoMenuActivity.startActivity(WatchMessagePictureActivity.this, message);
-                }
-            });
+            menuBtn.setOnClickListener(
+                    v -> WatchPicAndVideoMenuActivity.startActivity(WatchMessagePictureActivity.this, message));
         } else {
             menuBtn.setVisibility(View.GONE);
         }
@@ -164,23 +161,20 @@ public class WatchMessagePictureActivity extends UI {
         alertDialog = new CustomAlertDialog(this);
         loadingLayout = findViewById(R.id.loading_layout);
 
-        imageViewPager = (ViewPager) findViewById(R.id.view_pager_image);
-        simpleImageView = (ImageView) findViewById(R.id.simple_image_view);
+        imageViewPager = findViewById(R.id.view_pager_image);
+        simpleImageView = findViewById(R.id.simple_image_view);
 
         if (mode == MODE_GIF) {
             simpleImageView.setVisibility(View.VISIBLE);
-            simpleImageView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if (isOriginImageHasDownloaded(message)) {
-                        showWatchPictureAction();
-                    }
-                    return true;
+            simpleImageView.setOnLongClickListener(v -> {
+                if (isOriginImageHasDownloaded(message)) {
+                    showWatchPictureAction();
                 }
+                return true;
             });
 
             imageViewPager.setVisibility(View.GONE);
-        } else if (mode == MODE_NOMARL) {
+        } else if (mode == MODE_NORMAL) {
             simpleImageView.setVisibility(View.GONE);
             imageViewPager.setVisibility(View.VISIBLE);
         }
@@ -188,7 +182,7 @@ public class WatchMessagePictureActivity extends UI {
 
     // 加载并显示
     private void loadMsgAndDisplay() {
-        if (mode == MODE_NOMARL) {
+        if (mode == MODE_NORMAL) {
             queryImageMessages();
         } else if (mode == MODE_GIF) {
             displaySimpleImage();
@@ -456,14 +450,14 @@ public class WatchMessagePictureActivity extends UI {
         } else {
             loadingLayout.setVisibility(View.GONE);
         }
-        if (mode == MODE_NOMARL) {
+        if (mode == MODE_NORMAL) {
             setThumbnail(msg);
         }
     }
 
     private void onDownloadSuccess(final IMMessage msg) {
         loadingLayout.setVisibility(View.GONE);
-        if (mode == MODE_NOMARL) {
+        if (mode == MODE_NORMAL) {
             handler.post(new Runnable() {
 
                 @Override
@@ -478,7 +472,7 @@ public class WatchMessagePictureActivity extends UI {
 
     private void onDownloadFailed() {
         loadingLayout.setVisibility(View.GONE);
-        if (mode == MODE_NOMARL) {
+        if (mode == MODE_NORMAL) {
             image.setImageBitmap(ImageUtil.getBitmapFromDrawableRes(getImageResOnFailed()));
         } else if (mode == MODE_GIF) {
             simpleImageView.setImageBitmap(ImageUtil.getBitmapFromDrawableRes(getImageResOnFailed()));
