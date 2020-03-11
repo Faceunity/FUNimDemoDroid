@@ -92,7 +92,6 @@ public class AVChatController {
             AVChatManager.getInstance().muteLocalAudio(false);
             needRestoreLocalAudio = false;
         }
-
     }
 
     //关闭视频和语音发送.
@@ -378,6 +377,10 @@ public class AVChatController {
     // 设置扬声器是否开启
     public void toggleSpeaker() {
         AVChatManager.getInstance().setSpeaker(!AVChatManager.getInstance().speakerEnabled());
+    }
+
+    public int getCameraFacing() {
+        return mCameraFacing;
     }
 
     // 切换摄像头（主要用于前置和后置摄像头切换）

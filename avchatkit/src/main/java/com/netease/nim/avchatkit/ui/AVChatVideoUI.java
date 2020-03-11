@@ -4,10 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
-import android.hardware.Camera;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -21,9 +18,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.faceunity.beautycontrolview.BeautyControlView;
-import com.faceunity.beautycontrolview.FURenderer;
-import com.faceunity.beautycontrolview.OnFaceUnityControlListener;
+import com.faceunity.nama.FURenderer;
+import com.faceunity.nama.ui.BeautyControlView;
 import com.netease.nim.avchatkit.AVChatKit;
 import com.netease.nim.avchatkit.R;
 import com.netease.nim.avchatkit.common.imageview.HeadImageView;
@@ -45,8 +41,6 @@ import com.netease.nimlib.sdk.avchat.video.AVChatSurfaceViewRenderer;
 import com.netease.nrtc.video.render.IVideoRender;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 视频界面变化及点击事件
@@ -72,7 +66,6 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
     private LinearLayout smallSizePreviewLayout;
     private ImageView smallSizePreviewCoverImg;//stands for peer or local close camera
     private TextView largeSizePreviewCoverLayout;//stands for peer or local close camera
-    private View touchLayout;
 
     /**
      * video view
@@ -111,7 +104,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
     private boolean surfaceInit = false;
     private boolean videoInit = false;
     private boolean shouldEnableToggle = false;
-    public boolean canSwitchCamera = false;
+    private boolean canSwitchCamera = false;
     private boolean isInSwitch = false;
     private boolean isPeerVideoOff = false;
     private boolean isLocalVideoOff = false;
@@ -142,8 +135,8 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
     private AVSwitchListener avSwitchListener;
     private boolean isReleasedVideo = false;
     private BeautyControlView mBeautyControlView;
-    private FURenderer mFURenderer;
-    private Handler mRenderHandler;
+    private boolean mIsShowFuBeautyView;
+    private OnStatusChangedListener mOnStatusChangedListener;
 
     // touch zone
     public interface TouchZoneCallback {
@@ -164,12 +157,32 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         this.largeRender = new AVChatSurfaceViewRenderer(context);
     }
 
-    public void setFUController(FURenderer fuRenderer, Handler renderHandler) {
-        mFURenderer = fuRenderer;
-        mRenderHandler = renderHandler;
+    public void setFURenderer(FURenderer fuRenderer) {
         if (mBeautyControlView != null) {
             mBeautyControlView.setOnFaceUnityControlListener(fuRenderer);
         }
+    }
+
+    public void setShowFuBeautyView(boolean isShowFuBeautyView) {
+        mIsShowFuBeautyView = isShowFuBeautyView;
+    }
+
+    public void setOnStatusChangedListener(OnStatusChangedListener onStatusChangedListener) {
+        mOnStatusChangedListener = onStatusChangedListener;
+    }
+
+    public interface OnStatusChangedListener {
+        /**
+         * 相机切换
+         *
+         * @param cameraType
+         */
+        void onCameraSwitched(int cameraType);
+
+        /**
+         * 释放资源
+         */
+        void onReleased();
     }
 
     /**
@@ -182,7 +195,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         }
         View surfaceView = root.findViewById(R.id.avchat_surface_layout);
         if (surfaceView != null) {
-            touchLayout = surfaceView.findViewById(R.id.touch_zone);
+            View touchLayout = surfaceView.findViewById(R.id.touch_zone);
             touchLayout.setOnTouchListener(touchListener);
 
             smallSizePreviewFrameLayout = surfaceView.findViewById(R.id.small_size_preview_layout);
@@ -273,8 +286,8 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
                     }
 
                     break;
+                default:
             }
-
             return true;
         }
     };
@@ -336,6 +349,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
 
         bottomRoot = videoRoot.findViewById(R.id.avchat_video_bottom_control);
         mBeautyControlView = videoRoot.findViewById(R.id.beauty_control_view);
+        mBeautyControlView.setVisibility(mIsShowFuBeautyView ? View.VISIBLE : View.GONE);
 
         switchCameraToggle = new ToggleView(bottomRoot.findViewById(R.id.avchat_switch_camera), ToggleState.DISABLE, this);
         closeCameraToggle = new ToggleView(bottomRoot.findViewById(R.id.avchat_close_camera), ToggleState.DISABLE, this);
@@ -378,7 +392,9 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         setTopRoot(false);
         setMiddleRoot(true);
         setBottomRoot(false);
-        setFaceUnityRoot(false);
+        if (mIsShowFuBeautyView) {
+            mBeautyControlView.setVisibility(View.GONE);
+        }
     }
 
     public void doOutgoingCall(String account) {
@@ -395,7 +411,9 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         setTopRoot(false);
         setMiddleRoot(true);
         setBottomRoot(true);
-        setFaceUnityRoot(true);
+        if (mIsShowFuBeautyView) {
+            mBeautyControlView.setVisibility(View.VISIBLE);
+        }
 
         avChatController.doCalling(account, AVChatType.VIDEO, new AVChatControllerCallback<AVChatData>() {
             @Override
@@ -428,7 +446,9 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         setTopRoot(true);
         setMiddleRoot(false);
         setBottomRoot(true);
-        setFaceUnityRoot(true);
+        if (mIsShowFuBeautyView) {
+            mBeautyControlView.setVisibility(View.VISIBLE);
+        }
         showNoneCameraPermissionView(false);
     }
 
@@ -503,8 +523,9 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         setTopRoot(true);
         setMiddleRoot(false);
         setBottomRoot(true);
-        setFaceUnityRoot(true);
-
+        if (mIsShowFuBeautyView) {
+            mBeautyControlView.setVisibility(View.VISIBLE);
+        }
         showRecordView(avChatController.isRecording(), isRecordWarning);
     }
 
@@ -574,14 +595,6 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         if (bottomRootHeight == 0) {
             bottomRootHeight = bottomRoot.getHeight();
         }
-    }
-
-    private void setFaceUnityRoot(boolean visible) {
-        if (mBeautyControlView == null) {
-            return;
-        }
-
-        mBeautyControlView.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
     // 底部控制开关可用
@@ -665,7 +678,9 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
             avChatController.toggleMute();
         } else if (i == R.id.avchat_switch_camera) {
             int cameraFacing = avChatController.switchCamera();
-            mFURenderer.onCameraChange(cameraFacing, cameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? 270 : 90);
+            if (mOnStatusChangedListener != null) {
+                mOnStatusChangedListener.onCameraSwitched(cameraFacing);
+            }
         } else if (i == R.id.avchat_close_camera) {
             closeCamera();
         } else if (i == R.id.avchat_video_record) {
@@ -717,21 +732,8 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
             return;
         }
 
-        if (mRenderHandler != null) {
-            final CountDownLatch countDownLatch = new CountDownLatch(1);
-            mRenderHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    mFURenderer.onSurfaceDestroyed();
-                    countDownLatch.countDown();
-                }
-            });
-            try {
-                countDownLatch.await(1000, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            mRenderHandler = null;
+        if (mOnStatusChangedListener != null) {
+            mOnStatusChangedListener.onReleased();
         }
 
         isReleasedVideo = true;
@@ -836,7 +838,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         });
     }
 
-    public void showRecordView(boolean show, boolean warning) {
+    private void showRecordView(boolean show, boolean warning) {
         if (show) {
             recordToggle.setEnabled(true);
             recordToggle.setSelected(true);
