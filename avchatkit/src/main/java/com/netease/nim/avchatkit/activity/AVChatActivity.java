@@ -3,8 +3,6 @@ package com.netease.nim.avchatkit.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,7 +11,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.faceunity.beautycontrolview.FURenderer;
+import com.faceunity.nama.FURenderer;
 import com.netease.nim.avchatkit.AVChatKit;
 import com.netease.nim.avchatkit.AVChatProfile;
 import com.netease.nim.avchatkit.R;
@@ -48,6 +46,9 @@ import com.netease.nimlib.sdk.avchat.model.AVChatOnlineAckEvent;
 import com.netease.nrtc.sdk.common.VideoFilterParameter;
 import com.netease.nrtc.sdk.video.VideoFrame;
 import com.netease.nrtc.video.coding.VideoFrameFormat;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 音视频主界面
@@ -100,11 +101,9 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
 
     // notification
     private AVChatNotification notifier;
-
-    // 美颜处理类
-    private FURenderer mFURenderer;
-    private boolean mIsFirstFrame = true;
-    private boolean mFaceUnityIsOn;
+    // for faceunity
+    private boolean mIsFuBeautyOpen;
+    private int mSkippedFrames;
 
     // 拨打电话
     public static void outgoingCall(Context context, String account, String displayName, int callType, int source) {
@@ -135,8 +134,8 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mFaceUnityIsOn = TextUtils.equals(PreferenceUtil.VALUE_ON, PreferenceUtil.getString(this, PreferenceUtil.KEY_FACEUNITY_IS_ON));
-        if (mFaceUnityIsOn) {
+        mIsFuBeautyOpen = TextUtils.equals(PreferenceUtil.VALUE_ON, PreferenceUtil.getString(this, PreferenceUtil.KEY_FACEUNITY_IS_ON));
+        if (mIsFuBeautyOpen) {
             FURenderer.initFURenderer(this);
         }
         super.onCreate(savedInstanceState);
@@ -205,7 +204,7 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         try {
             manualHangUp(AVChatExitCode.HANGUP);
         } catch (Exception e) {
-
+            Log.e(TAG, "onDestroy: ", e);
         }
 
         if (avChatAudioUI != null) {
@@ -257,8 +256,8 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         avChatController = new AVChatController(this, avChatData);
         avChatAudioUI = new AVChatAudioUI(this, root, displayName, avChatController, this);
         avChatVideoUI = new AVChatVideoUI(this, root, avChatData, displayName, avChatController, this, this);
+        avChatVideoUI.setShowFuBeautyView(mIsFuBeautyOpen);
     }
-
 
     private void registerObserves(boolean register) {
         AVChatManager.getInstance().observeAVChatState(avchatStateObserver, register);
@@ -318,8 +317,13 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
 
     // 通话过程状态监听
     private SimpleAVChatStateObserver avchatStateObserver = new SimpleAVChatStateObserver() {
+        private static final int SKIP_FRAME_COUNT = 5;
         private byte[] mI420Byte;
         private byte[] mReadback;
+        private boolean mIsFirstFrame = true;
+        // 竖屏 90，横屏 0
+        private int mFrameRotation = 90;
+        private FURenderer mFURenderer;
 
         @Override
         public void onAVRecordingCompletion(String account, String filePath) {
@@ -404,54 +408,93 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
 
         @Override
         public boolean onVideoFrameFilter(VideoFrame input, VideoFrame[] outputFrames, VideoFilterParameter filterParameter) {
+            if (!mIsFuBeautyOpen) {
+                return true;
+            }
+
             VideoFrame.Buffer buffer = input.getBuffer();
             int width = buffer.getWidth();
             int height = buffer.getHeight();
             int rotation = input.getRotation();
             int format = buffer.getFormat();
+            boolean isFuProcessed = false;
+            if (mIsFirstFrame) {
+                mFURenderer = new FURenderer.Builder(AVChatActivity.this)
+                        .setCreateEGLContext(true)
+                        .setInputTextureType(FURenderer.INPUT_2D_TEXTURE)
+                        .setCameraType(avChatController.getCameraFacing())
+                        .setInputImageOrientation(filterParameter.frameRotation)
+                        .build();
+                avChatVideoUI.setFURenderer(mFURenderer);
+                avChatVideoUI.setOnStatusChangedListener(new AVChatVideoUI.OnStatusChangedListener() {
 
-            if (mFaceUnityIsOn) {
-                if (mIsFirstFrame) {
-                    Handler renderHandler = new Handler(Looper.myLooper());
-                    mFURenderer = new FURenderer.Builder(AVChatActivity.this)
-                            .createEGLContext(true)
-                            .build();
-                    avChatVideoUI.setFUController(mFURenderer, renderHandler);
-                    mFURenderer.onSurfaceCreated();
-                    mIsFirstFrame = false;
-                }
+                    @Override
+                    public void onCameraSwitched(int cameraType) {
+                        mFURenderer.onCameraChange(cameraType, FURenderer.getCameraOrientation(cameraType));
+                        mSkippedFrames = SKIP_FRAME_COUNT;
+                    }
 
-                // I420 格式
-                if (format == VideoFrameFormat.kVideoI420) {
-                    int byteSize = 0;
-                    if (mI420Byte == null) {
-                        byteSize = width * height * 3 / 2;
-                        mI420Byte = new byte[byteSize];
+                    @Override
+                    public void onReleased() {
+                        final CountDownLatch countDownLatch = new CountDownLatch(1);
+                        mFURenderer.queueEvent(new Runnable() {
+                            @Override
+                            public void run() {
+                                mFURenderer.onSurfaceDestroyed();
+                                mIsFirstFrame = true;
+                                countDownLatch.countDown();
+                            }
+                        });
+                        try {
+                            countDownLatch.await(1000, TimeUnit.MILLISECONDS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    buffer.toBytes(mI420Byte);
-                    if (mReadback == null) {
-                        mReadback = new byte[byteSize];
-                    }
-                    // 美颜滤镜
-                    mFURenderer.onDrawFrameSingleInput(mI420Byte, width, height, mReadback, width, height, FURenderer.INPUT_I420);
-                    // 数据回传
+                });
+
+                mFURenderer.onSurfaceCreated();
+                int bufSize = width * height * 3 / 2;
+                mI420Byte = new byte[bufSize];
+                mReadback = new byte[bufSize];
+                mIsFirstFrame = false;
+            }
+
+            // 屏幕方向改变
+            if (filterParameter.frameRotation != mFrameRotation) {
+                mFURenderer.onDeviceOrientationChanged(filterParameter.displayRotation, filterParameter.frameRotation);
+                mFrameRotation = filterParameter.frameRotation;
+                mSkippedFrames = SKIP_FRAME_COUNT;
+            }
+
+            // I420 数据格式
+            if (format == VideoFrameFormat.kVideoI420) {
+                buffer.toBytes(mI420Byte);
+                // faceunity 美颜处理
+                mFURenderer.onDrawFrameSingleInput(mI420Byte, width, height, mReadback, width, height, FURenderer.INPUT_I420);
+                if (mSkippedFrames > 0) {
+                    // 切换相机和旋转屏幕时，跳过 3 帧
+                    mSkippedFrames--;
+                } else {
+                    // 美颜数据回传
                     try {
                         VideoFrame.Buffer outputBuffer = VideoFrame.asBuffer(mReadback, format, width, height);
                         VideoFrame.Buffer rotatedBuffer = outputBuffer.rotate(filterParameter.frameRotation);
                         VideoFrame outputFrame = new VideoFrame(rotatedBuffer, rotation, input.getTimestampMs());
                         outputFrames[0] = outputFrame;
                         outputBuffer.release();
+                        isFuProcessed = true;
                     } catch (IllegalAccessException e) {
                         Log.e(TAG, "onVideoFrameFilter: ", e);
                     }
                 }
-            } else {
+            }
+            // 原始数据回传
+            if (!isFuProcessed) {
                 VideoFrame.Buffer rotatedBuffer = buffer.rotate(filterParameter.frameRotation);
                 VideoFrame outputFrame = new VideoFrame(rotatedBuffer, rotation, input.getTimestampMs());
                 outputFrames[0] = outputFrame;
             }
-            input.release();
-
             return true;
         }
 

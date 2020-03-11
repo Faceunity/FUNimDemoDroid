@@ -5,15 +5,16 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.netease.nim.avchatkit.common.TFragment;
 import com.netease.nim.avchatkit.common.log.LogUtil;
@@ -35,6 +36,7 @@ public abstract class UI extends AppCompatActivity {
         super.onStart();
     }
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -71,6 +73,7 @@ public abstract class UI extends AppCompatActivity {
             case android.R.id.home:
                 onNavigateUpClicked();
                 return true;
+            default:
         }
         return super.onOptionsItemSelected(item);
     }

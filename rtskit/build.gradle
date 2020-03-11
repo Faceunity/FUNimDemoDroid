@@ -9,7 +9,6 @@ android {
         targetSdkVersion rootProject.ext.appTargetSdkVersion
         versionCode rootProject.ext.versionCode
         versionName rootProject.ext.versionName
-
     }
 
     sourceSets {
@@ -27,9 +26,7 @@ dependencies {
     compileOnly fileTree(dir: 'libs', include: ['*.jar'])
     implementation("androidx.appcompat:appcompat:${ANDROIDX_APPCOMPAT_VERSION}")
 
-    compileOnly 'com.github.bumptech.glide:glide:4.9.0'
+    compileOnly 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
     compileOnly 'jp.wasabeef:glide-transformations:3.0.1'
-
-
 }

@@ -7,6 +7,8 @@ import android.os.Process;
 import android.text.TextUtils;
 import android.webkit.WebView;
 
+import androidx.multidex.MultiDex;
+
 import com.netease.nim.avchatkit.AVChatKit;
 import com.netease.nim.avchatkit.config.AVChatOptions;
 import com.netease.nim.avchatkit.model.ITeamDataProvider;
@@ -39,8 +41,6 @@ import com.netease.nimlib.sdk.mixpush.NIMPushClient;
 import com.netease.nimlib.sdk.uinfo.model.UserInfo;
 import com.netease.nimlib.sdk.util.NIMUtil;
 import com.squareup.leakcanary.LeakCanary;
-
-import androidx.multidex.MultiDex;
 
 public class NimApplication extends Application {
 

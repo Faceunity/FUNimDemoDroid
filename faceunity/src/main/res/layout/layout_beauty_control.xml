@@ -15,7 +15,7 @@
         android:padding="@dimen/x16"
         android:visibility="gone">
 
-        <com.faceunity.beautycontrolview.seekbar.DiscreteSeekBar
+        <com.faceunity.nama.ui.seekbar.DiscreteSeekBar
             android:id="@+id/beauty_seek_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -137,14 +137,14 @@
             android:scrollbars="none"
             android:visibility="visible">
 
-            <com.faceunity.beautycontrolview.BeautyBoxGroup
+            <com.faceunity.nama.ui.BeautyBoxGroup
                 android:id="@+id/beauty_box_skin_beauty"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/beauty_all_blur_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -153,7 +153,7 @@
                     app:drawable_normal="@drawable/beauty_skin_control_all_blur_normal"
                     app:text_normal="精准美肤" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/beauty_type_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -165,7 +165,7 @@
                     app:text_checked="朦胧磨皮"
                     app:text_normal="清晰磨皮" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/beauty_blur_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -173,7 +173,7 @@
                     app:drawable_normal="@drawable/beauty_skin_control_blur_normal"
                     app:text_normal="磨皮" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/beauty_color_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -181,7 +181,7 @@
                     app:drawable_normal="@drawable/beauty_skin_control_color_normal"
                     app:text_normal="美白" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/beauty_red_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -189,7 +189,7 @@
                     app:drawable_normal="@drawable/beauty_skin_control_red_normal"
                     app:text_normal="红润" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/beauty_bright_eyes_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -197,7 +197,7 @@
                     app:drawable_normal="@drawable/beauty_skin_control_bright_eyes_normal"
                     app:text_normal="亮眼" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/beauty_teeth_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -205,7 +205,7 @@
                     app:drawable_normal="@drawable/beauty_skin_control_teeth_normal"
                     app:text_normal="美牙" />
 
-            </com.faceunity.beautycontrolview.BeautyBoxGroup>
+            </com.faceunity.nama.ui.BeautyBoxGroup>
         </HorizontalScrollView>
 
         <HorizontalScrollView
@@ -216,14 +216,14 @@
             android:scrollbars="none"
             android:visibility="gone">
 
-            <com.faceunity.beautycontrolview.BeautyBoxGroup
+            <com.faceunity.nama.ui.BeautyBoxGroup
                 android:id="@+id/beauty_box_face_shape"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/face_shape_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -232,7 +232,7 @@
                     app:drawable_normal="@drawable/beauty_type_control_face_shape_normal"
                     app:text_normal="脸型" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/enlarge_eye_level_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -240,7 +240,7 @@
                     app:drawable_normal="@drawable/beauty_type_control_enlarge_eye_level_normal"
                     app:text_normal="大眼" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/cheek_thin_level_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -248,7 +248,7 @@
                     app:drawable_normal="@drawable/beauty_type_control_cheekthin_level_normal"
                     app:text_normal="瘦脸" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/chin_level_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -256,7 +256,7 @@
                     app:drawable_normal="@drawable/beauty_type_control_chin_level_normal"
                     app:text_normal="下巴" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/forehead_level_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -264,7 +264,7 @@
                     app:drawable_normal="@drawable/beauty_type_control_forehead_level_normal"
                     app:text_normal="额头" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/thin_nose_level_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -272,7 +272,7 @@
                     app:drawable_normal="@drawable/beauty_type_control_thin_nose_level_normal"
                     app:text_normal="瘦鼻" />
 
-                <com.faceunity.beautycontrolview.BeautyBox
+                <com.faceunity.nama.ui.BeautyBox
                     android:id="@+id/mouth_shape_box"
                     android:layout_width="@dimen/x160"
                     android:layout_height="wrap_content"
@@ -280,7 +280,7 @@
                     app:drawable_normal="@drawable/beauty_type_control_mouth_shape_normal"
                     app:text_normal="嘴型" />
 
-            </com.faceunity.beautycontrolview.BeautyBoxGroup>
+            </com.faceunity.nama.ui.BeautyBoxGroup>
         </HorizontalScrollView>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -298,7 +298,7 @@
             android:visibility="gone" />
     </FrameLayout>
 
-    <com.faceunity.beautycontrolview.CheckGroup
+    <com.faceunity.nama.ui.CheckGroup
         android:id="@+id/beauty_radio_group"
         android:layout_width="match_parent"
         android:layout_height="@dimen/x100"
@@ -345,18 +345,6 @@
             android:textSize="@dimen/normal_text_size" />
 
         <CheckBox
-            android:id="@+id/beauty_radio_beauty_filter"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@color/Transparent"
-            android:button="@null"
-            android:gravity="center"
-            android:text="美颜滤镜"
-            android:textColor="@drawable/beauty_control_bottom_radio_color"
-            android:textSize="@dimen/normal_text_size" />
-
-        <CheckBox
             android:id="@+id/beauty_radio_filter"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -367,5 +355,5 @@
             android:text="滤镜"
             android:textColor="@drawable/beauty_control_bottom_radio_color"
             android:textSize="@dimen/normal_text_size" />
-    </com.faceunity.beautycontrolview.CheckGroup>
+    </com.faceunity.nama.ui.CheckGroup>
 </LinearLayout>
