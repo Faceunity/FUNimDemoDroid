@@ -6,24 +6,14 @@ package com.faceunity.nama.entity;
  * @author Richie on 2019.12.20
  */
 public class Effect {
-    private String bundleName;
     private int iconId;
     private String filePath;
-    private String desc;
+    private String description;
 
-    public Effect(String bundleName, int iconId, String filePath, String desc) {
-        this.bundleName = bundleName;
+    public Effect(int iconId, String filePath, String description) {
         this.iconId = iconId;
         this.filePath = filePath;
-        this.desc = desc;
-    }
-
-    public String getBundleName() {
-        return bundleName;
-    }
-
-    public void setBundleName(String bundleName) {
-        this.bundleName = bundleName;
+        this.description = description;
     }
 
     public int getIconId() {
@@ -42,20 +32,19 @@ public class Effect {
         this.filePath = filePath;
     }
 
-    public String getDesc() {
-        return desc;
+    public String getDescription() {
+        return description;
     }
 
-    public void setDesc(String desc) {
-        this.desc = desc;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override
     public String toString() {
         return "Effect{" +
-                "bundleName='" + bundleName + '\'' +
-                ", filePath='" + filePath + '\'' +
-                ", desc='" + desc + '\'' +
+                "filePath='" + filePath + '\'' +
+                ", description='" + description + '\'' +
                 '}';
     }
 }
