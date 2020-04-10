@@ -678,7 +678,7 @@ public class BeautyControlView extends FrameLayout {
         public void onBindViewHolder(FilterRecyclerHolder holder, final int position) {
             int iconId = mFilters.get(position).getIconId();
             holder.filterImg.setBackgroundResource(iconId);
-            String desc = mFilters.get(position).getDesc();
+            String desc = mFilters.get(position).getDescription();
             holder.filterName.setText(desc);
             int selResId = mSelectedFilterPosition == position ? R.drawable.control_filter_select : android.R.color.transparent;
             holder.filterImg.setImageResource(selResId);

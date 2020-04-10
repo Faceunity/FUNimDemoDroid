@@ -430,7 +430,7 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
 
                     @Override
                     public void onCameraSwitched(int cameraType) {
-                        mFURenderer.onCameraChange(cameraType, FURenderer.getCameraOrientation(cameraType));
+                        mFURenderer.onCameraChanged(cameraType, FURenderer.getCameraOrientation(cameraType));
                         mSkippedFrames = SKIP_FRAME_COUNT;
                     }
 
@@ -471,7 +471,7 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
             if (format == VideoFrameFormat.kVideoI420) {
                 buffer.toBytes(mI420Byte);
                 // faceunity 美颜处理
-                mFURenderer.onDrawFrameSingleInput(mI420Byte, width, height, mReadback, width, height, FURenderer.INPUT_I420);
+                mFURenderer.onDrawFrameSingleInput(mI420Byte, width, height, mReadback, width, height, FURenderer.INPUT_FORMAT_I420);
                 if (mSkippedFrames > 0) {
                     // 切换相机和旋转屏幕时，跳过 3 帧
                     mSkippedFrames--;

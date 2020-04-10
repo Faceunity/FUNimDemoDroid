@@ -8,12 +8,12 @@ package com.faceunity.nama.entity;
 public class Filter {
     private String name;
     private int iconId;
-    private String desc;
+    private String description;
 
-    public Filter(String name, int iconId, String desc) {
+    public Filter(String name, int iconId, String description) {
         this.name = name;
         this.iconId = iconId;
-        this.desc = desc;
+        this.description = description;
     }
 
     public String getName() {
@@ -32,19 +32,19 @@ public class Filter {
         this.iconId = iconId;
     }
 
-    public String getDesc() {
-        return desc;
+    public String getDescription() {
+        return description;
     }
 
-    public void setDesc(String desc) {
-        this.desc = desc;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override
     public String toString() {
         return "Filter{" +
                 "name='" + name + '\'' +
-                ", desc='" + desc + '\'' +
+                ", description='" + description + '\'' +
                 '}';
     }
 }
