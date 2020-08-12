@@ -45,8 +45,8 @@
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <com.faceunity.nama.ui.BeautyControlView
-        android:id="@+id/beauty_control_view"
+    <com.faceunity.nama.ui.FaceUnityView
+        android:id="@+id/faceunity_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@id/avchat_video_bottom_control" />

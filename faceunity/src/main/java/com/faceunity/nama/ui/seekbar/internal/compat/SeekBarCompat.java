@@ -101,7 +101,7 @@ public class SeekBarCompat {
     }
 
     /**
-     * android.support.v4.view.ViewCompat SHOULD include this once and for all!!
+     * androidx.v4.view.ViewCompat SHOULD include this once and for all!!
      * But it doesn't...
      *
      * @param view

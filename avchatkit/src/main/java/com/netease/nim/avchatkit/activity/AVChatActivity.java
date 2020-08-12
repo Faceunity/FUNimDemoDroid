@@ -3,6 +3,8 @@ package com.netease.nim.avchatkit.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
@@ -12,6 +14,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.faceunity.nama.FURenderer;
+import com.faceunity.nama.utils.CameraUtils;
 import com.netease.nim.avchatkit.AVChatKit;
 import com.netease.nim.avchatkit.AVChatProfile;
 import com.netease.nim.avchatkit.R;
@@ -136,7 +139,7 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
     protected void onCreate(Bundle savedInstanceState) {
         mIsFuBeautyOpen = TextUtils.equals(PreferenceUtil.VALUE_ON, PreferenceUtil.getString(this, PreferenceUtil.KEY_FACEUNITY_IS_ON));
         if (mIsFuBeautyOpen) {
-            FURenderer.initFURenderer(this);
+            FURenderer.setup(this);
         }
         super.onCreate(savedInstanceState);
         // 若来电或去电未接通时，点击home。另外一方挂断通话。从最近任务列表恢复，则finish
@@ -324,6 +327,7 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         // 竖屏 90，横屏 0
         private int mFrameRotation = 90;
         private FURenderer mFURenderer;
+        private Handler mGlHandler;
 
         @Override
         public void onAVRecordingCompletion(String account, String filePath) {
@@ -368,8 +372,6 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
         public void onJoinedChannel(int code, String audioFile, String videoFile, int i) {
             LogUtil.d(TAG, "audioFile -> " + audioFile + " videoFile -> " + videoFile);
             handleWithConnectServerResult(code);
-
-            mIsFirstFrame = true;
         }
 
         @Override
@@ -419,29 +421,30 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
             int format = buffer.getFormat();
             boolean isFuProcessed = false;
             if (mIsFirstFrame) {
+                mGlHandler = new Handler(Looper.myLooper());
                 mFURenderer = new FURenderer.Builder(AVChatActivity.this)
-                        .setCreateEGLContext(true)
-                        .setInputTextureType(FURenderer.INPUT_2D_TEXTURE)
-                        .setCameraType(avChatController.getCameraFacing())
+                        .setCreateEglContext(true)
+                        .setInputTextureType(FURenderer.INPUT_TEXTURE_2D)
+                        .setCameraFacing(avChatController.getCameraFacing())
                         .setInputImageOrientation(filterParameter.frameRotation)
+                        .setDeviceOrientation(0)
                         .build();
                 avChatVideoUI.setFURenderer(mFURenderer);
                 avChatVideoUI.setOnStatusChangedListener(new AVChatVideoUI.OnStatusChangedListener() {
 
                     @Override
                     public void onCameraSwitched(int cameraType) {
-                        mFURenderer.onCameraChanged(cameraType, FURenderer.getCameraOrientation(cameraType));
+                        mFURenderer.onCameraChanged(cameraType, CameraUtils.getCameraOrientation(cameraType));
                         mSkippedFrames = SKIP_FRAME_COUNT;
                     }
 
                     @Override
                     public void onReleased() {
                         final CountDownLatch countDownLatch = new CountDownLatch(1);
-                        mFURenderer.queueEvent(new Runnable() {
+                        mGlHandler.post(new Runnable() {
                             @Override
                             public void run() {
                                 mFURenderer.onSurfaceDestroyed();
-                                mIsFirstFrame = true;
                                 countDownLatch.countDown();
                             }
                         });
@@ -462,7 +465,7 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
 
             // 屏幕方向改变
             if (filterParameter.frameRotation != mFrameRotation) {
-                mFURenderer.onDeviceOrientationChanged(filterParameter.displayRotation, filterParameter.frameRotation);
+                mFURenderer.onDeviceOrientationChanged(filterParameter.displayRotation);
                 mFrameRotation = filterParameter.frameRotation;
                 mSkippedFrames = SKIP_FRAME_COUNT;
             }
@@ -471,7 +474,7 @@ public class AVChatActivity extends UI implements AVChatVideoUI.TouchZoneCallbac
             if (format == VideoFrameFormat.kVideoI420) {
                 buffer.toBytes(mI420Byte);
                 // faceunity 美颜处理
-                mFURenderer.onDrawFrameSingleInput(mI420Byte, width, height, mReadback, width, height, FURenderer.INPUT_FORMAT_I420);
+                mFURenderer.onDrawFrameSingleInput(mI420Byte, width, height, FURenderer.INPUT_FORMAT_I420_BUFFER, mReadback, width, height);
                 if (mSkippedFrames > 0) {
                     // 切换相机和旋转屏幕时，跳过 3 帧
                     mSkippedFrames--;
