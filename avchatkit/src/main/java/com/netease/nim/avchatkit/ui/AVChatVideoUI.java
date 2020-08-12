@@ -19,7 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.faceunity.nama.FURenderer;
-import com.faceunity.nama.ui.BeautyControlView;
+import com.faceunity.nama.ui.FaceUnityView;
 import com.netease.nim.avchatkit.AVChatKit;
 import com.netease.nim.avchatkit.R;
 import com.netease.nim.avchatkit.common.imageview.HeadImageView;
@@ -134,7 +134,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
     private AVChatController avChatController;
     private AVSwitchListener avSwitchListener;
     private boolean isReleasedVideo = false;
-    private BeautyControlView mBeautyControlView;
+    private FaceUnityView mBeautyControlView;
     private boolean mIsShowFuBeautyView;
     private OnStatusChangedListener mOnStatusChangedListener;
 
@@ -159,7 +159,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
 
     public void setFURenderer(FURenderer fuRenderer) {
         if (mBeautyControlView != null) {
-            mBeautyControlView.setOnFaceUnityControlListener(fuRenderer);
+            mBeautyControlView.setModuleManager(fuRenderer);
         }
     }
 
@@ -348,7 +348,7 @@ public class AVChatVideoUI implements View.OnClickListener, ToggleListener {
         recordWarning = recordView.findViewById(R.id.avchat_record_warning);
 
         bottomRoot = videoRoot.findViewById(R.id.avchat_video_bottom_control);
-        mBeautyControlView = videoRoot.findViewById(R.id.beauty_control_view);
+        mBeautyControlView = videoRoot.findViewById(R.id.faceunity_view);
         mBeautyControlView.setVisibility(mIsShowFuBeautyView ? View.VISIBLE : View.GONE);
 
         switchCameraToggle = new ToggleView(bottomRoot.findViewById(R.id.avchat_switch_camera), ToggleState.DISABLE, this);

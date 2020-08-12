@@ -1,8 +1,20 @@
-import java.text.SimpleDateFormat
+//import java.text.SimpleDateFormat
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    apply from: 'script.gradle', to: buildscript
+    repositories {
+        google()
+        jcenter()
+        maven {
+            url 'http://s3.amazonaws.com/fabric-artifacts/public'
+        }
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.5.3'
+        classpath 'com.google.gms:google-services:4.2.0'
+        classpath 'io.fabric.tools:gradle:1.31.0'
+    }
 }
 
 allprojects {
@@ -18,7 +30,7 @@ allprojects {
 ext {
     compileSdkVersion = 28
     buildToolsVersion = '28.0.3'
-    minSdkVersion = 16
+    minSdkVersion = 19
     targetSdkVersion = 28
     appTargetSdkVersion = 28
     versionCode = 75
@@ -27,21 +39,21 @@ ext {
     sdkTargetCompatibility = 1.8
     appSourceCompatibility = 1.8
     appTargetCompatibility = 1.8
-    nimOutputDir = "nim-outputs-${versionName}-${getBuildTime()}-${getGitVersion()}"
+//    nimOutputDir = "nim-outputs-${versionName}-${getBuildTime()}-${getGitVersion()}"
 
 }
 
-static def getGitVersion() {
-    try {
-        return 'git rev-parse --short HEAD'.execute().text.trim()
-    } catch (Throwable th) {
-        th.printStackTrace()
-        return ""
-    }
-}
-
-static def getBuildTime() {
-    Date date = new Date()
-    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd")
-    return simpleDateFormat.format(date)
-}
+//static def getGitVersion() {
+//    try {
+//        return 'git rev-parse --short HEAD'.execute().text.trim()
+//    } catch (Throwable th) {
+//        th.printStackTrace()
+//        return ""
+//    }
+//}
+//
+//static def getBuildTime() {
+//    Date date = new Date()
+//    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd")
+//    return simpleDateFormat.format(date)
+//}
