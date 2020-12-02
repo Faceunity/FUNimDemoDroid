@@ -1,6 +1,1 @@
-include ':uikit' 
-include ':demo' 
-include ':faceunity' 
-include ':jrmfRpWalletlib'
-include ':avchatkit'
-include ':rtskit'
+include ':app', ':faceunity'

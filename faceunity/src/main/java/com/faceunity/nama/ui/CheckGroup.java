@@ -1,6 +1,7 @@
 package com.faceunity.nama.ui;
 
 import android.content.Context;
+import androidx.annotation.IdRes;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +9,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 
-import androidx.annotation.IdRes;
 
 /**
  * Created by tujh on 2018/4/17.
@@ -184,7 +184,7 @@ public class CheckGroup extends LinearLayout {
          * @param group     the group in which the checked radio button has changed
          * @param checkedId the unique identifier of the newly checked radio button
          */
-        public void onCheckedChanged(CheckGroup group, @IdRes int checkedId);
+        void onCheckedChanged(CheckGroup group, @IdRes int checkedId);
     }
 
     private class CheckedStateTracker implements CompoundButton.OnCheckedChangeListener {
