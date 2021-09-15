@@ -145,6 +145,14 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
      * @param roomID 房间ID
      */
     private void joinChannel(long userID, String roomID) {
+        // 设置本地视频参数
+        NERtcVideoConfig config = new NERtcVideoConfig();
+        config.width = 640;
+        config.height = 360;
+        config.videoCropMode = RTCVideoCropMode.kRTCVideoCropModeDefault;
+        config.frameRate = NERtcVideoConfig.NERtcVideoFrameRate.FRAME_RATE_FPS_15;
+        NERtcEx.getInstance().setLocalVideoConfig(config);
+
         Log.i(TAG, "joinChannel userId: " + userID);
         NERtcEx.getInstance().joinChannel(null, roomID, userID);
         localUserVv.setZOrderMediaOverlay(true);
@@ -193,20 +201,6 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
      * 初始化SDK
      */
     private void setupNERtc() {
-        NERtcParameters parameters = new NERtcParameters();
-        parameters.set(NERtcParameters.KEY_AUTO_SUBSCRIBE_AUDIO, false);
-
-        // 先设置参数，后初始化
-        NERtcEx.getInstance().setParameters(parameters);
-
-        // 设置本地视频参数
-        NERtcVideoConfig config = new NERtcVideoConfig();
-        config.width = 640;
-        config.height = 360;
-        config.videoCropMode = RTCVideoCropMode.kRTCVideoCropModeDefault;
-        config.frameRate = NERtcVideoConfig.NERtcVideoFrameRate.FRAME_RATE_FPS_15;
-        NERtcEx.getInstance().setLocalVideoConfig(config);
-
         // 设置日志等级
         NERtcOption options = new NERtcOption();
         if (BuildConfig.DEBUG) {
@@ -376,10 +370,6 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
     @Override
     public void onUserAudioStart(long uid) {
         Log.i(TAG, "onUserAudioStart uid: " + uid);
-        if (!isCurrentUser(uid)) {
-            return;
-        }
-        NERtcEx.getInstance().subscribeRemoteAudioStream(uid, true);
     }
 
     @Override
