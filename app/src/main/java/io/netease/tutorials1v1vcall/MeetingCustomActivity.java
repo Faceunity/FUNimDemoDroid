@@ -27,6 +27,7 @@ import com.netease.lava.api.model.RTCVideoCropMode;
 import com.netease.lava.nertc.sdk.NERtcCallback;
 import com.netease.lava.nertc.sdk.NERtcConstants;
 import com.netease.lava.nertc.sdk.NERtcEx;
+import com.netease.lava.nertc.sdk.NERtcOption;
 import com.netease.lava.nertc.sdk.NERtcParameters;
 import com.netease.lava.nertc.sdk.video.NERtcRemoteVideoStreamType;
 import com.netease.lava.nertc.sdk.video.NERtcVideoCallback;
@@ -131,6 +132,14 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
      * @param roomID 房间ID
      */
     private void joinChannel(long userID, String roomID) {
+        // 设置本地视频参数
+        NERtcVideoConfig config = new NERtcVideoConfig();
+        config.width = 640;
+        config.height = 360;
+        config.videoCropMode = RTCVideoCropMode.kRTCVideoCropModeDefault;
+        config.frameRate = NERtcVideoConfig.NERtcVideoFrameRate.FRAME_RATE_FPS_15;
+        NERtcEx.getInstance().setLocalVideoConfig(config);
+
         Log.i(TAG, "joinChannel userId: " + userID);
         NERtcEx.getInstance().joinChannel(null, roomID, userID);
         localUserVv.setZOrderMediaOverlay(true);
@@ -190,26 +199,21 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
      * 初始化SDK
      */
     private void setupNERtc() {
-        NERtcParameters parameters = new NERtcParameters();
-        parameters.set(NERtcParameters.KEY_AUTO_SUBSCRIBE_AUDIO, false);
-//        parameters.set(NERtcParameters.KEY_VIDEO_DECODE_MODE, NERtcConstants.MediaCodecMode.MEDIA_CODEC_SOFTWARE);
-//        parameters.set(NERtcParameters.KEY_VIDEO_ENCODE_MODE, NERtcConstants.MediaCodecMode.MEDIA_CODEC_SOFTWARE);
-        NERtcEx.getInstance().setParameters(parameters); //先设置参数，后初始化
-
-        NERtcVideoConfig config = new NERtcVideoConfig();
-        config.frameRate = NERtcVideoConfig.NERtcVideoFrameRate.FRAME_RATE_FPS_30;
-        config.minFramerate = 25;
-        config.videoProfile = NERtcConstants.VideoProfile.HD720P;
-        config.videoCropMode = RTCVideoCropMode.kRTCVideoCropMode16x9;
-        NERtcEx.getInstance().setLocalVideoConfig(config); //设置本地视频参数
+        // 设置日志等级
+        NERtcOption options = new NERtcOption();
+        if (BuildConfig.DEBUG) {
+            options.logLevel = NERtcConstants.LogLevel.INFO;
+        } else {
+            options.logLevel = NERtcConstants.LogLevel.WARNING;
+        }
 
         try {
-            NERtcEx.getInstance().init(getApplicationContext(), getString(R.string.app_key), this, null);
+            NERtcEx.getInstance().init(getApplicationContext(), getString(R.string.app_key), this, options);
         } catch (Exception e) {
             // 可能由于没有release导致初始化失败，release后再试一次
             NERtcEx.getInstance().release();
             try {
-                NERtcEx.getInstance().init(getApplicationContext(), getString(R.string.app_key), this, null);
+                NERtcEx.getInstance().init(getApplicationContext(), getString(R.string.app_key), this, options);
             } catch (Exception ex) {
                 Toast.makeText(this, "SDK初始化失败", Toast.LENGTH_LONG).show();
                 finish();
@@ -302,10 +306,6 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
     @Override
     public void onUserAudioStart(long uid) {
         Log.i(TAG, "onUserAudioStart uid: " + uid);
-        if (!isCurrentUser(uid)) {
-            return;
-        }
-        NERtcEx.getInstance().subscribeRemoteAudioStream(uid, true);
     }
 
     @Override
@@ -347,8 +347,8 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
     }
 
     @Override
-    public void onClientRoleChange(int i, int i1) {
-
+    public void onClientRoleChange(int oldRole, int newRole) {
+        Log.i(TAG, "onClientRoleChange new role: " + newRole + " old role: " + oldRole);
     }
 
     /**
