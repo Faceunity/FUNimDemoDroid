@@ -346,6 +346,11 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
         }
     }
 
+    @Override
+    public void onClientRoleChange(int i, int i1) {
+
+    }
+
     /**
      * 判断是否为onUserJoined中，设置了Tag的用户
      *
