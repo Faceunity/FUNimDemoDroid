@@ -32,8 +32,8 @@ import io.netease.tutorials1v1vcall.profile.Constant;
  */
 public class CameraRenderer implements Camera.PreviewCallback {
     private static final String TAG = "CameraRenderer";
-    private static final int DEFAULT_CAMERA_WIDTH = 1280;
-    private static final int DEFAULT_CAMERA_HEIGHT = 720;
+    private static final int DEFAULT_CAMERA_WIDTH = 640;
+    private static final int DEFAULT_CAMERA_HEIGHT = 360;
     private static final int PREVIEW_BUFFER_COUNT = 3;
     private Activity mActivity;
     private Camera mCamera;
