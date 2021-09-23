@@ -122,8 +122,10 @@ public class CameraRenderer implements Camera.PreviewCallback {
         mCamera.addCallbackBuffer(data);
         mSurfaceTexture.updateTexImage();
         long start = System.nanoTime();
-        int texId = mFURenderer.onDrawFrameDualInput(data, mCameraTextureId, mCameraWidth, mCameraHeight,
+
+        int texId = mFURenderer.onDrawFrameSingleInput(data, mCameraWidth, mCameraHeight,FURenderer.INPUT_FORMAT_NV21_BUFFER,
                 mReadbackByte, mCameraWidth, mCameraHeight);
+
         long time = System.nanoTime() - start;
         mCSVUtils.writeCsv(null, time);
         if (mSkippedFrames > 0) {

@@ -29,6 +29,7 @@ import com.netease.lava.nertc.sdk.NERtc;
 import com.netease.lava.nertc.sdk.NERtcCallback;
 import com.netease.lava.nertc.sdk.NERtcConstants;
 import com.netease.lava.nertc.sdk.NERtcEx;
+import com.netease.lava.nertc.sdk.NERtcOption;
 import com.netease.lava.nertc.sdk.NERtcParameters;
 import com.netease.lava.nertc.sdk.video.NERtcRemoteVideoStreamType;
 import com.netease.lava.nertc.sdk.video.NERtcVideoCallback;
@@ -154,12 +155,12 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
     @Override
     protected void onStop() {
         super.onStop();
-        destroyFU();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        destroyFU();
         if (mSensorManager != null) {
             mSensorManager.unregisterListener(this);
         }
@@ -194,21 +195,33 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
     private void setupNERtc() {
         NERtcParameters parameters = new NERtcParameters();
         parameters.set(NERtcParameters.KEY_AUTO_SUBSCRIBE_AUDIO, false);
-        NERtcEx.getInstance().setParameters(parameters); //先设置参数，后初始化
+
+        // 先设置参数，后初始化
+        NERtcEx.getInstance().setParameters(parameters);
+
+        // 设置本地视频参数
         NERtcVideoConfig config = new NERtcVideoConfig();
-        config.frameRate = NERtcVideoConfig.NERtcVideoFrameRate.FRAME_RATE_FPS_30;
-        config.minFramerate = 25;
-        config.videoProfile = NERtcConstants.VideoProfile.HD720P;
-        config.videoCropMode = RTCVideoCropMode.kRTCVideoCropMode16x9;
-        NERtcEx.getInstance().setLocalVideoConfig(config); //设置本地视频参数
+        config.width = 640;
+        config.height = 360;
+        config.videoCropMode = RTCVideoCropMode.kRTCVideoCropModeDefault;
+        config.frameRate = NERtcVideoConfig.NERtcVideoFrameRate.FRAME_RATE_FPS_15;
+        NERtcEx.getInstance().setLocalVideoConfig(config);
+
+        // 设置日志等级
+        NERtcOption options = new NERtcOption();
+        if (BuildConfig.DEBUG) {
+            options.logLevel = NERtcConstants.LogLevel.INFO;
+        } else {
+            options.logLevel = NERtcConstants.LogLevel.WARNING;
+        }
 
         try {
-            NERtcEx.getInstance().init(getApplicationContext(), getString(R.string.app_key), this, null);
+            NERtcEx.getInstance().init(getApplicationContext(), getString(R.string.app_key), this, options);
         } catch (Exception e) {
             // 可能由于没有release导致初始化失败，release后再试一次
             NERtcEx.getInstance().release();
             try {
-                NERtcEx.getInstance().init(getApplicationContext(), getString(R.string.app_key), this, null);
+                NERtcEx.getInstance().init(getApplicationContext(), getString(R.string.app_key), this, options);
             } catch (Exception ex) {
                 Toast.makeText(this, "SDK初始化失败", Toast.LENGTH_LONG).show();
                 finish();
@@ -237,7 +250,6 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
                     mHandler = new Handler(Looper.myLooper());
                     mFURenderer.onSurfaceCreated();
                     initCsvUtil(MeetingActivity.this);
-                    return false;
                 }
                 long start = System.nanoTime();
                 int texId = 0;
@@ -254,6 +266,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
                     return false;
                 }
                 neRtcVideoFrame.textureId = texId;
+                neRtcVideoFrame.format = NERtcVideoFrame.Format.TEXTURE_RGB;
                 return true;
             }
         }, needI420);
@@ -404,6 +417,11 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         if (reason != NERtcConstants.ErrorCode.OK) {
             finish();
         }
+    }
+
+    @Override
+    public void onClientRoleChange(int oldRole, int newRole) {
+        Log.i(TAG, "onClientRoleChange new role: " + newRole + " old role: " + oldRole);
     }
 
     /**

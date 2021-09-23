@@ -69,7 +69,7 @@ public class FURenderer implements IFURenderer, IModuleManager {
     private BodySlimModule mBodySlimModule;
     /* 是否创建过特效模块，用于恢复选中效果 */
     private boolean mIsCreatedSticker;
-    private boolean mIsCreatedMakeup;
+    public boolean mIsCreatedMakeup;
     private boolean mIsCreatedBodySlim;
     /* 是否已经全局初始化，确保只初始化一次 */
     private static boolean sIsInited;
@@ -281,6 +281,7 @@ public class FURenderer implements IFURenderer, IModuleManager {
         prepareDrawFrame();
         int flags = createFlags();
         flags ^= mInputTextureType;
+        flags |= faceunity.FU_ADM_FLAG_ENABLE_READBACK;
         if (mIsRunBenchmark) {
             mCallStartTime = System.nanoTime();
         }
@@ -332,6 +333,7 @@ public class FURenderer implements IFURenderer, IModuleManager {
         }
         prepareDrawFrame();
         int flags = createFlags();
+        flags |= faceunity.FU_ADM_FLAG_ENABLE_READBACK;
         if (mIsRunBenchmark) {
             mCallStartTime = System.nanoTime();
         }

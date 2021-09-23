@@ -346,6 +346,11 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
         }
     }
 
+    @Override
+    public void onClientRoleChange(int i, int i1) {
+
+    }
+
     /**
      * 判断是否为onUserJoined中，设置了Tag的用户
      *
@@ -444,19 +449,4 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
 
     }
 
-    private void initCsvUtil(Context context) {
-        mCSVUtils = new CSVUtils(context);
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault());
-        String dateStrDir = format.format(new Date(System.currentTimeMillis()));
-        dateStrDir = dateStrDir.replaceAll("-", "").replaceAll("_", "");
-        SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault());
-        String dateStrFile = df.format(new Date());
-        String filePath = Constant.filePath + dateStrDir + File.separator + "excel-" + dateStrFile + ".csv";
-        Log.d(TAG, "initLog: CSV file path:" + filePath);
-        StringBuilder headerInfo = new StringBuilder();
-        headerInfo.append("version：").append(FURenderer.getVersion()).append(CSVUtils.COMMA)
-                .append("机型：").append(android.os.Build.MANUFACTURER).append(android.os.Build.MODEL)
-                .append("处理方式：Texture").append(CSVUtils.COMMA);
-        mCSVUtils.initHeader(filePath, headerInfo);
-    }
 }
