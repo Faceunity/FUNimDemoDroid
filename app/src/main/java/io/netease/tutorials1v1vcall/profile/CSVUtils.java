@@ -132,6 +132,10 @@ public class CSVUtils {
 
     public void close() {
         Log.d(TAG, "close: ");
+        if (mHandler == null) {
+            mCPUInfoUtil.close();
+            return;
+        }
         mHandler.post(new Runnable() {
             @Override
             public void run() {
