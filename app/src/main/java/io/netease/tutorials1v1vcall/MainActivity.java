@@ -14,6 +14,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.faceunity.FUConfig;
+import com.faceunity.nama.utils.FuDeviceUtils;
 import com.netease.lava.nertc.sdk.NERtc;
 
 import java.util.List;
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initViews();
         requestPermissionsIfNeeded();
+        FUConfig.DEVICE_LEVEL = FuDeviceUtils.judgeDeviceLevel(this);
     }
 
     private void requestPermissionsIfNeeded() {

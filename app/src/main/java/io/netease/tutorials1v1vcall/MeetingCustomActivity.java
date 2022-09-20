@@ -3,13 +3,12 @@ package io.netease.tutorials1v1vcall;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -19,32 +18,29 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.faceunity.core.enumeration.CameraFacingEnum;
+import com.faceunity.core.enumeration.FUAIProcessorEnum;
+import com.faceunity.core.enumeration.FUInputTextureEnum;
 import com.faceunity.nama.FURenderer;
-import com.faceunity.nama.IFURenderer;
+import com.faceunity.nama.data.FaceUnityDataFactory;
+import com.faceunity.nama.listener.FURendererListener;
 import com.faceunity.nama.ui.FaceUnityView;
-import com.faceunity.nama.utils.CameraUtils;
 import com.netease.lava.api.model.RTCVideoCropMode;
 import com.netease.lava.nertc.sdk.NERtcCallback;
 import com.netease.lava.nertc.sdk.NERtcConstants;
 import com.netease.lava.nertc.sdk.NERtcEx;
 import com.netease.lava.nertc.sdk.NERtcParameters;
 import com.netease.lava.nertc.sdk.video.NERtcRemoteVideoStreamType;
-import com.netease.lava.nertc.sdk.video.NERtcVideoCallback;
 import com.netease.lava.nertc.sdk.video.NERtcVideoConfig;
-import com.netease.lava.nertc.sdk.video.NERtcVideoFrame;
 import com.netease.lava.nertc.sdk.video.NERtcVideoView;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
 
-import androidx.appcompat.app.AppCompatActivity;
 import io.netease.tutorials1v1vcall.custom.CameraRenderer;
-import io.netease.tutorials1v1vcall.profile.CSVUtils;
-import io.netease.tutorials1v1vcall.profile.Constant;
+import io.netease.tutorials1v1vcall.custom.CameraUtils;
 
 //  Created by NetEase on 7/31/20.
 //  Copyright (c) 2014-2020 NetEase, Inc. All rights reserved.
@@ -66,11 +62,11 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
     private ImageButton enableVideoIb;
     private ImageView cameraFlipImg;
     private TextView mTvFps;
+    private TextView mTvTraceFace;
     private View localUserBgV;
     private FURenderer mFURenderer;
-    private int mCameraFacing = FURenderer.CAMERA_FACING_FRONT;
+    private FaceUnityDataFactory mFaceUnityDataFactory;
     private SensorManager mSensorManager;
-    private CSVUtils mCSVUtils;
     private CameraRenderer mCameraRenderer;
 
     public static void startActivity(Activity from, String roomId) {
@@ -83,46 +79,86 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_meeting);
 
-        FaceUnityView faceUnityView = findViewById(R.id.fu_view);
-        FURenderer.setup(this);
-        mFURenderer = new FURenderer.Builder(this)
-                .setInputTextureType(FURenderer.INPUT_TEXTURE_EXTERNAL_OES)
-                .setCameraFacing(mCameraFacing)
-                .setCreateEglContext(true)
-                .setInputImageOrientation(CameraUtils.getCameraOrientation(mCameraFacing))
-                .setRunBenchmark(true)
-                .setOnDebugListener(new FURenderer.OnDebugListener() {
-                    @Override
-                    public void onFpsChanged(double fps, double callTime) {
-                        final String FPS = String.format(Locale.getDefault(), "%.2f", fps);
-                        Log.e(TAG, "onFpsChanged: FPS " + FPS + " callTime " + String.format(Locale.getDefault(), "%.2f", callTime));
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mTvFps != null) {
-                                    mTvFps.setText("FPS: " + FPS);
-                                }
-                            }
-                        });
-                    }
-                })
-                .build();
-        faceUnityView.setModuleManager(mFURenderer);
 
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        Sensor sensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
-        mCameraRenderer = new CameraRenderer(this, mFURenderer);
+        FaceUnityView faceUnityView = findViewById(R.id.fu_view);
+
+
+        String isOpen = PreferenceUtil.getString(this, PreferenceUtil.KEY_FACEUNITY_IS_ON);
+        mFaceUnityDataFactory = new FaceUnityDataFactory(0);
+
+        if (TextUtils.isEmpty(isOpen) || isOpen.equals("false")) {
+            faceUnityView.setVisibility(View.GONE);
+        } else {
+            mFURenderer = FURenderer.getInstance();
+            mFURenderer.setup(this);
+            mFURenderer.setMarkFPSEnable(true);
+            mFURenderer.setInputTextureType(FUInputTextureEnum.FU_ADM_FLAG_EXTERNAL_OES_TEXTURE);
+            mFURenderer.setCameraFacing(CameraFacingEnum.CAMERA_FRONT);
+            mFURenderer.setInputOrientation(CameraUtils.getCameraOrientation(Camera.CameraInfo.CAMERA_FACING_FRONT));
+            mFURenderer.setCreateEGLContext(true);
+
+            faceUnityView.bindDataFactory(mFaceUnityDataFactory);
+
+            mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            Sensor sensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        mCameraRenderer = new CameraRenderer(this, mFaceUnityDataFactory, mFURendererListener);
 
         mTvFps = findViewById(R.id.tv_fps);
+        mTvTraceFace = findViewById(R.id.tv_trace_face);
         initViews();
         setupNERtc();
         String roomId = getIntent().getStringExtra(EXTRA_ROOM_ID);
         long userId = generateRandomUserID();
         joinChannel(userId, roomId);
     }
+
+    private FURendererListener mFURendererListener = new FURendererListener() {
+
+        @Override
+        public void onPrepare() {
+            mFaceUnityDataFactory.bindCurrentRenderer();
+        }
+
+        @Override
+        public void onTrackStatusChanged(FUAIProcessorEnum type, int status) {
+            Log.e(TAG, "onTrackStatusChanged: 人脸数: " + status);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mTvTraceFace != null) {
+                        mTvTraceFace.setVisibility(status > 0 ? View.GONE : View.VISIBLE);
+                        if (type == FUAIProcessorEnum.FACE_PROCESSOR) {
+                            mTvTraceFace.setText(R.string.toast_not_detect_face);
+                        }else if (type == FUAIProcessorEnum.HUMAN_PROCESSOR) {
+                            mTvTraceFace.setText(R.string.toast_not_detect_body);
+                        }
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onFpsChanged(double fps, double callTime) {
+            final String FPS = String.format(Locale.getDefault(), "%.2f", fps);
+            Log.e(TAG, "onFpsChanged: FPS " + FPS + " callTime " + String.format(Locale.getDefault(), "%.2f", callTime));
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mTvFps.setText(FPS);
+                }
+            });
+        }
+
+        @Override
+        public void onRelease() {
+        }
+    };
 
     /**
      * 加入房间
@@ -161,6 +197,7 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
         if (mSensorManager != null) {
             mSensorManager.unregisterListener(this);
         }
+        mCameraRenderer.onDestroy();
         NERtcEx.getInstance().release();
     }
 
@@ -192,6 +229,7 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
     private void setupNERtc() {
         NERtcParameters parameters = new NERtcParameters();
         parameters.set(NERtcParameters.KEY_AUTO_SUBSCRIBE_AUDIO, false);
+        parameters.set(NERtcParameters.KEY_VIDEO_LOCAL_PREVIEW_MIRROR, false);
 //        parameters.set(NERtcParameters.KEY_VIDEO_DECODE_MODE, NERtcConstants.MediaCodecMode.MEDIA_CODEC_SOFTWARE);
 //        parameters.set(NERtcParameters.KEY_VIDEO_ENCODE_MODE, NERtcConstants.MediaCodecMode.MEDIA_CODEC_SOFTWARE);
         NERtcEx.getInstance().setParameters(parameters); //先设置参数，后初始化
@@ -255,7 +293,7 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
     }
 
     @Override
-    public void onJoinChannel(int result, long channelId, long elapsed) {
+    public void onJoinChannel(int result, long channelId, long elapsed, long l2) {
         Log.i(TAG, "onJoinChannel result: " + result + " channelId: " + channelId + " elapsed: " + elapsed);
         if (result == NERtcConstants.ErrorCode.OK) {
             joinedChannel = true;
@@ -346,6 +384,11 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
         }
     }
 
+    @Override
+    public void onClientRoleChange(int i, int i1) {
+
+    }
+
     /**
      * 判断是否为onUserJoined中，设置了Tag的用户
      *
@@ -408,17 +451,6 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
                 changeVideoEnable();
                 break;
             case R.id.img_camera_flip:
-//                if (NERtcEx.getInstance().switchCamera() == 0) {
-//                    if (mFURenderer == null) {
-//                        return;
-//                    }
-//                    mSkipFrame = 5;
-//                    mCameraFacing = IFURenderer.CAMERA_FACING_FRONT - mCameraFacing;
-//                    mFURenderer.onCameraChanged(mCameraFacing, CameraUtils.getCameraOrientation(mCameraFacing));
-//                    if (mFURenderer.getMakeupModule() != null) {
-//                        mFURenderer.getMakeupModule().setIsMakeupFlipPoints(mCameraFacing == IFURenderer.CAMERA_FACING_FRONT ? 0 : 1);
-//                    }
-//                }
                 mCameraRenderer.switchCamera();
                 break;
             default:
@@ -432,9 +464,9 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
         float y = event.values[1];
         if (Math.abs(x) > 3 || Math.abs(y) > 3) {
             if (Math.abs(x) > Math.abs(y)) {
-                mFURenderer.onDeviceOrientationChanged(x > 0 ? 0 : 180);
+                mFURenderer.setDeviceOrientation(x > 0 ? 0 : 180);
             } else {
-                mFURenderer.onDeviceOrientationChanged(y > 0 ? 90 : 270);
+                mFURenderer.setDeviceOrientation(y > 0 ? 90 : 270);
             }
         }
     }
@@ -444,19 +476,4 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
 
     }
 
-    private void initCsvUtil(Context context) {
-        mCSVUtils = new CSVUtils(context);
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault());
-        String dateStrDir = format.format(new Date(System.currentTimeMillis()));
-        dateStrDir = dateStrDir.replaceAll("-", "").replaceAll("_", "");
-        SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault());
-        String dateStrFile = df.format(new Date());
-        String filePath = Constant.filePath + dateStrDir + File.separator + "excel-" + dateStrFile + ".csv";
-        Log.d(TAG, "initLog: CSV file path:" + filePath);
-        StringBuilder headerInfo = new StringBuilder();
-        headerInfo.append("version：").append(FURenderer.getVersion()).append(CSVUtils.COMMA)
-                .append("机型：").append(android.os.Build.MANUFACTURER).append(android.os.Build.MODEL)
-                .append("处理方式：Texture").append(CSVUtils.COMMA);
-        mCSVUtils.initHeader(filePath, headerInfo);
-    }
 }

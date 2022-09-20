@@ -3,10 +3,12 @@ package io.netease.tutorials1v1vcall;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.opengl.EGL14;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -20,12 +22,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.faceunity.core.enumeration.CameraFacingEnum;
+import com.faceunity.core.enumeration.FUAIProcessorEnum;
+import com.faceunity.core.enumeration.FUInputTextureEnum;
+import com.faceunity.core.enumeration.FUTransformMatrixEnum;
 import com.faceunity.nama.FURenderer;
-import com.faceunity.nama.IFURenderer;
+import com.faceunity.nama.data.FaceUnityDataFactory;
+import com.faceunity.nama.listener.FURendererListener;
 import com.faceunity.nama.ui.FaceUnityView;
-import com.faceunity.nama.utils.CameraUtils;
+import com.netease.lava.api.IVideoRender;
 import com.netease.lava.api.model.RTCVideoCropMode;
-import com.netease.lava.nertc.sdk.NERtc;
 import com.netease.lava.nertc.sdk.NERtcCallback;
 import com.netease.lava.nertc.sdk.NERtcConstants;
 import com.netease.lava.nertc.sdk.NERtcEx;
@@ -44,6 +50,8 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import io.netease.tutorials1v1vcall.custom.CameraUtils;
 import io.netease.tutorials1v1vcall.profile.CSVUtils;
 import io.netease.tutorials1v1vcall.profile.Constant;
 
@@ -72,10 +80,11 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
     private Handler mHandler;
     private boolean isFirstInit = true;
     private boolean isFUOn = false;
-    private int mCameraFacing = FURenderer.CAMERA_FACING_FRONT;
+    private int mCameraFacing = Camera.CameraInfo.CAMERA_FACING_FRONT;
     private SensorManager mSensorManager;
     private int mSkipFrame = 5;
     private CSVUtils mCSVUtils;
+    private FaceUnityDataFactory mFaceUnityDataFactory;
 
     public static void startActivity(Activity from, String roomId) {
         Intent intent = new Intent(from, MeetingActivity.class);
@@ -97,29 +106,19 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         }
         FaceUnityView faceUnityView = findViewById(R.id.fu_view);
         if (isFUOn) {
-            FURenderer.setup(this);
-            mFURenderer = new FURenderer.Builder(this)
-                    .setInputTextureType(FURenderer.INPUT_TEXTURE_EXTERNAL_OES)
-                    .setCameraFacing(mCameraFacing)
-                    .setInputImageOrientation(CameraUtils.getCameraOrientation(mCameraFacing))
-                    .setRunBenchmark(true)
-                    .setOnDebugListener(new FURenderer.OnDebugListener() {
-                        @Override
-                        public void onFpsChanged(double fps, double callTime) {
-                            final String FPS = String.format(Locale.getDefault(), "%.2f", fps);
-                            Log.e(TAG, "onFpsChanged: FPS " + FPS + " callTime " + String.format(Locale.getDefault(), "%.2f", callTime));
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (mTvFps != null) {
-                                        mTvFps.setText("FPS: " + FPS);
-                                    }
-                                }
-                            });
-                        }
-                    })
-                    .build();
-            faceUnityView.setModuleManager(mFURenderer);
+            FURenderer.getInstance().setup(this);
+            mFURenderer = FURenderer.getInstance();
+
+            mFURenderer.setMarkFPSEnable(true);
+            mFURenderer.setInputTextureType(FUInputTextureEnum.FU_ADM_FLAG_EXTERNAL_OES_TEXTURE);
+            mFURenderer.setCameraFacing(CameraFacingEnum.CAMERA_FRONT);
+            mFURenderer.setInputOrientation(CameraUtils.getCameraOrientation(Camera.CameraInfo.CAMERA_FACING_FRONT));
+            mFURenderer.setInputTextureMatrix(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? FUTransformMatrixEnum.CCROT0_FLIPVERTICAL : FUTransformMatrixEnum.CCROT0);
+            mFURenderer.setInputBufferMatrix(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? FUTransformMatrixEnum.CCROT0_FLIPVERTICAL : FUTransformMatrixEnum.CCROT0);
+            mFURenderer.setOutputMatrix(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? FUTransformMatrixEnum.CCROT0 : FUTransformMatrixEnum.CCROT0_FLIPVERTICAL);
+            mFURenderer.setCreateEGLContext(false);
+            mFaceUnityDataFactory = new FaceUnityDataFactory(0);
+            faceUnityView.bindDataFactory(mFaceUnityDataFactory);
 
             mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             Sensor sensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -147,14 +146,13 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         Log.i(TAG, "joinChannel userId: " + userID);
         NERtcEx.getInstance().joinChannel(null, roomID, userID);
         localUserVv.setZOrderMediaOverlay(true);
-        localUserVv.setScalingType(NERtcConstants.VideoScalingType.SCALE_ASPECT_FIT);
+        localUserVv.setScalingType(IVideoRender.ScalingType.SCALE_ASPECT_FILL);
         NERtcEx.getInstance().setupLocalVideoCanvas(localUserVv);
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        destroyFU();
+    protected void onPause() {
+        super.onPause();
     }
 
     @Override
@@ -163,6 +161,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         if (mSensorManager != null) {
             mSensorManager.unregisterListener(this);
         }
+        destroyFU();
         NERtcEx.getInstance().release();
     }
 
@@ -223,40 +222,63 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         }
     }
 
+    private FURendererListener mFURendererListener = new FURendererListener() {
+
+        @Override
+        public void onPrepare() {
+            mFaceUnityDataFactory.bindCurrentRenderer();
+        }
+
+        @Override
+        public void onTrackStatusChanged(FUAIProcessorEnum type, int status) {
+            Log.e(TAG, "onTrackStatusChanged: 人脸数: " + status);
+        }
+
+        @Override
+        public void onFpsChanged(double fps, double callTime) {
+            final String FPS = String.format(Locale.getDefault(), "%.2f", fps);
+            Log.e(TAG, "onFpsChanged: FPS " + FPS + " callTime " + String.format(Locale.getDefault(), "%.2f", callTime));
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mTvFps.setText(FPS);
+                }
+            });
+        }
+
+        @Override
+        public void onRelease() {
+        }
+    };
+
+
     private void setVideoCallback() {
-        //返回 I420数据 会影响性能
-        //是否是双输入
-        // 1 双输入 2 单texture 3 单buffer
-        int inputType = 2;
-        boolean needI420 = inputType != 2;
+
         NERtcEx.getInstance().setVideoCallback(new NERtcVideoCallback() {
             @Override
             public boolean onVideoCallback(NERtcVideoFrame neRtcVideoFrame) {
                 if (isFirstInit) {
                     isFirstInit = false;
                     mHandler = new Handler(Looper.myLooper());
-                    mFURenderer.onSurfaceCreated();
+                    mFURenderer.prepareRenderer(mFURendererListener);
                     initCsvUtil(MeetingActivity.this);
                     return false;
                 }
+                Log.e(TAG, "onVideoCallback: elg context " + EGL14.eglGetCurrentContext());
                 long start = System.nanoTime();
-                int texId = 0;
-                if (inputType == 1) {
-                    texId = mFURenderer.onDrawFrameDualInput(neRtcVideoFrame.data, neRtcVideoFrame.textureId, neRtcVideoFrame.width, neRtcVideoFrame.height);
-                }else if (inputType == 2){
-                    texId = mFURenderer.onDrawFrameSingleInput(neRtcVideoFrame.textureId, neRtcVideoFrame.width, neRtcVideoFrame.height);
-                }else if (inputType == 3) {
-                    texId = mFURenderer.onDrawFrameSingleInput(neRtcVideoFrame.data, neRtcVideoFrame.width, neRtcVideoFrame.height, IFURenderer.INPUT_FORMAT_I420_BUFFER);
-                }
+                int texId = mFURenderer.onDrawFrameSingleInput(neRtcVideoFrame.textureId, neRtcVideoFrame.width, neRtcVideoFrame.height);
                 long renderTime = System.nanoTime() - start;
                 mCSVUtils.writeCsv(null, renderTime);
                 if (mSkipFrame -- > 0) {
                     return false;
                 }
+                if (neRtcVideoFrame.format == NERtcVideoFrame.Format.TEXTURE_OES) {
+                    neRtcVideoFrame.format = NERtcVideoFrame.Format.TEXTURE_RGB;
+                }
                 neRtcVideoFrame.textureId = texId;
                 return true;
             }
-        }, needI420);
+        }, false);
     }
 
     /**
@@ -300,7 +322,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                mFURenderer.onSurfaceDestroyed();
+                mFURenderer.release();
                 mCSVUtils.close();
                 isFirstInit = true;
                 countDownLatch.countDown();
@@ -315,7 +337,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
     }
 
     @Override
-    public void onJoinChannel(int result, long channelId, long elapsed) {
+    public void onJoinChannel(int result, long channelId, long elapsed, long l2) {
         Log.i(TAG, "onJoinChannel result: " + result + " channelId: " + channelId + " elapsed: " + elapsed);
         if (result == NERtcConstants.ErrorCode.OK) {
             joinedChannel = true;
@@ -406,6 +428,11 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         }
     }
 
+    @Override
+    public void onClientRoleChange(int i, int i1) {
+
+    }
+
     /**
      * 判断是否为onUserJoined中，设置了Tag的用户
      *
@@ -472,11 +499,13 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
                         return;
                     }
                     mSkipFrame = 5;
-                    mCameraFacing = IFURenderer.CAMERA_FACING_FRONT - mCameraFacing;
-                    mFURenderer.onCameraChanged(mCameraFacing, CameraUtils.getCameraOrientation(mCameraFacing));
-                    if (mFURenderer.getMakeupModule() != null) {
-                        mFURenderer.getMakeupModule().setIsMakeupFlipPoints(mCameraFacing == IFURenderer.CAMERA_FACING_FRONT ? 0 : 1);
-                    }
+                    mCameraFacing = Camera.CameraInfo.CAMERA_FACING_FRONT - mCameraFacing;
+                    mFURenderer.setCameraFacing(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? CameraFacingEnum.CAMERA_FRONT : CameraFacingEnum.CAMERA_BACK);
+                    mFURenderer.setInputOrientation(CameraUtils.getCameraOrientation(mCameraFacing));
+
+                    mFURenderer.setInputTextureMatrix(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? FUTransformMatrixEnum.CCROT0_FLIPVERTICAL : FUTransformMatrixEnum.CCROT0);
+                    mFURenderer.setInputBufferMatrix(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? FUTransformMatrixEnum.CCROT0_FLIPVERTICAL : FUTransformMatrixEnum.CCROT0);
+                    mFURenderer.setOutputMatrix(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? FUTransformMatrixEnum.CCROT0 : FUTransformMatrixEnum.CCROT0_FLIPVERTICAL);
                 }
                 break;
             default:
@@ -490,9 +519,9 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         float y = event.values[1];
         if (Math.abs(x) > 3 || Math.abs(y) > 3) {
             if (Math.abs(x) > Math.abs(y)) {
-                mFURenderer.onDeviceOrientationChanged(x > 0 ? 0 : 180);
+                mFURenderer.setDeviceOrientation(x > 0 ? 0 : 180);
             } else {
-                mFURenderer.onDeviceOrientationChanged(y > 0 ? 90 : 270);
+                mFURenderer.setDeviceOrientation(y > 0 ? 90 : 270);
             }
         }
     }
@@ -512,7 +541,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         String filePath = Constant.filePath + dateStrDir + File.separator + "excel-" + dateStrFile + ".csv";
         Log.d(TAG, "initLog: CSV file path:" + filePath);
         StringBuilder headerInfo = new StringBuilder();
-        headerInfo.append("version：").append(FURenderer.getVersion()).append(CSVUtils.COMMA)
+        headerInfo.append("version：").append(FURenderer.getInstance().getVersion()).append(CSVUtils.COMMA)
                 .append("机型：").append(android.os.Build.MANUFACTURER).append(android.os.Build.MODEL)
                 .append("处理方式：Texture").append(CSVUtils.COMMA);
         mCSVUtils.initHeader(filePath, headerInfo);
