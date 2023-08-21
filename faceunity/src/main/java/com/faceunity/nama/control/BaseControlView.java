@@ -2,15 +2,14 @@ package com.faceunity.nama.control;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.util.AttributeSet;
-import android.widget.FrameLayout;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
+import android.util.AttributeSet;
+import android.widget.FrameLayout;
 
 import com.faceunity.nama.base.BaseListAdapter;
 import com.faceunity.nama.dialog.BaseDialogFragment;

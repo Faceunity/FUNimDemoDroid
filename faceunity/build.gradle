@@ -6,8 +6,8 @@ android {
     defaultConfig {
         minSdkVersion 18
         targetSdkVersion 28
-        versionCode 830
-        versionName "8.3.0"
+        versionCode 870
+        versionName "8.7.0"
     }
     buildTypes {
         release {
@@ -42,6 +42,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    api 'com.faceunity:core:8.3.0'
-    implementation 'com.faceunity:model:8.3.0'
+    api 'com.faceunity:core:8.7.0'
+    implementation 'com.faceunity:model:8.7.0'
 }

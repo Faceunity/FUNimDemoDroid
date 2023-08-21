@@ -2,7 +2,6 @@ package com.faceunity.nama.checkbox;
 
 import android.content.Context;
 import androidx.annotation.IdRes;
-
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;

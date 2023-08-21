@@ -1,11 +1,8 @@
 package com.faceunity.nama.control;
 
 import android.content.Context;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.Nullable;
-
 import androidx.recyclerview.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -94,7 +91,7 @@ public class PropControlView extends BaseControlView {
                 }
 
             }
-        }, R.layout.list_item_control_image_circle);
+        }, R.layout.list_item_control_image_square);
         recyclerView.setAdapter(mPropAdapter);
     }
 

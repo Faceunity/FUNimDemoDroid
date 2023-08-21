@@ -27,11 +27,14 @@ import com.faceunity.nama.FURenderer;
 import com.faceunity.nama.data.FaceUnityDataFactory;
 import com.faceunity.nama.listener.FURendererListener;
 import com.faceunity.nama.ui.FaceUnityView;
+import com.netease.lava.api.IVideoRender;
 import com.netease.lava.api.model.RTCVideoCropMode;
 import com.netease.lava.nertc.sdk.NERtcCallback;
 import com.netease.lava.nertc.sdk.NERtcConstants;
 import com.netease.lava.nertc.sdk.NERtcEx;
 import com.netease.lava.nertc.sdk.NERtcParameters;
+import com.netease.lava.nertc.sdk.NERtcUserJoinExtraInfo;
+import com.netease.lava.nertc.sdk.NERtcUserLeaveExtraInfo;
 import com.netease.lava.nertc.sdk.video.NERtcRemoteVideoStreamType;
 import com.netease.lava.nertc.sdk.video.NERtcVideoConfig;
 import com.netease.lava.nertc.sdk.video.NERtcVideoView;
@@ -87,7 +90,7 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
 
 
         String isOpen = PreferenceUtil.getString(this, PreferenceUtil.KEY_FACEUNITY_IS_ON);
-        mFaceUnityDataFactory = new FaceUnityDataFactory(0);
+        mFaceUnityDataFactory = new FaceUnityDataFactory(-1);
 
         if (TextUtils.isEmpty(isOpen) || isOpen.equals("false")) {
             faceUnityView.setVisibility(View.GONE);
@@ -170,7 +173,7 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
         Log.i(TAG, "joinChannel userId: " + userID);
         NERtcEx.getInstance().joinChannel(null, roomID, userID);
         localUserVv.setZOrderMediaOverlay(true);
-        localUserVv.setScalingType(NERtcConstants.VideoScalingType.SCALE_ASPECT_FIT);
+        localUserVv.setScalingType(IVideoRender.ScalingType.SCALE_ASPECT_FILL);
         NERtcEx.getInstance().setupLocalVideoCanvas(localUserVv);
     }
 
@@ -321,6 +324,11 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
     }
 
     @Override
+    public void onUserJoined(long l, NERtcUserJoinExtraInfo neRtcUserJoinExtraInfo) {
+
+    }
+
+    @Override
     public void onUserLeave(long uid, int reason) {
         Log.i(TAG, "onUserLeave uid: " + uid + " reason: " + reason);
         // 退出的不是当前订阅的对象，则不作处理
@@ -335,6 +343,11 @@ public class MeetingCustomActivity extends AppCompatActivity implements NERtcCal
         waitHintTv.setVisibility(View.VISIBLE);
         // 不展示远端
         remoteUserVv.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onUserLeave(long l, int i, NERtcUserLeaveExtraInfo neRtcUserLeaveExtraInfo) {
+
     }
 
     @Override

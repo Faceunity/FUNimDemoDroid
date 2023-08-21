@@ -26,16 +26,23 @@ import com.faceunity.core.enumeration.CameraFacingEnum;
 import com.faceunity.core.enumeration.FUAIProcessorEnum;
 import com.faceunity.core.enumeration.FUInputTextureEnum;
 import com.faceunity.core.enumeration.FUTransformMatrixEnum;
+import com.faceunity.core.faceunity.FUAIKit;
+import com.faceunity.core.faceunity.FURenderKit;
+import com.faceunity.core.model.facebeauty.FaceBeautyBlurTypeEnum;
+import com.faceunity.nama.FUConfig;
 import com.faceunity.nama.FURenderer;
 import com.faceunity.nama.data.FaceUnityDataFactory;
 import com.faceunity.nama.listener.FURendererListener;
 import com.faceunity.nama.ui.FaceUnityView;
+import com.faceunity.nama.utils.FuDeviceUtils;
 import com.netease.lava.api.IVideoRender;
 import com.netease.lava.api.model.RTCVideoCropMode;
 import com.netease.lava.nertc.sdk.NERtcCallback;
 import com.netease.lava.nertc.sdk.NERtcConstants;
 import com.netease.lava.nertc.sdk.NERtcEx;
 import com.netease.lava.nertc.sdk.NERtcParameters;
+import com.netease.lava.nertc.sdk.NERtcUserJoinExtraInfo;
+import com.netease.lava.nertc.sdk.NERtcUserLeaveExtraInfo;
 import com.netease.lava.nertc.sdk.video.NERtcRemoteVideoStreamType;
 import com.netease.lava.nertc.sdk.video.NERtcVideoCallback;
 import com.netease.lava.nertc.sdk.video.NERtcVideoConfig;
@@ -48,6 +55,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -75,6 +83,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
     private ImageButton enableVideoIb;
     private ImageView cameraFlipImg;
     private TextView mTvFps;
+    private TextView mTvTraceFace;
     private View localUserBgV;
     private FURenderer mFURenderer;
     private Handler mHandler;
@@ -117,7 +126,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
             mFURenderer.setInputBufferMatrix(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? FUTransformMatrixEnum.CCROT0_FLIPVERTICAL : FUTransformMatrixEnum.CCROT0);
             mFURenderer.setOutputMatrix(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? FUTransformMatrixEnum.CCROT0 : FUTransformMatrixEnum.CCROT0_FLIPVERTICAL);
             mFURenderer.setCreateEGLContext(false);
-            mFaceUnityDataFactory = new FaceUnityDataFactory(0);
+            mFaceUnityDataFactory = new FaceUnityDataFactory(-1);
             faceUnityView.bindDataFactory(mFaceUnityDataFactory);
 
             mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -129,6 +138,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
 
 
         mTvFps = findViewById(R.id.tv_fps);
+        mTvTraceFace = findViewById(R.id.tv_trace_face);
         initViews();
         setupNERtc();
         String roomId = getIntent().getStringExtra(EXTRA_ROOM_ID);
@@ -199,6 +209,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         config.minFramerate = 25;
         config.videoProfile = NERtcConstants.VideoProfile.HD720P;
         config.videoCropMode = RTCVideoCropMode.kRTCVideoCropMode16x9;
+        config.colorFormat = NERtcConstants.VideoColorFormat.TEXTURE;
         NERtcEx.getInstance().setLocalVideoConfig(config); //设置本地视频参数
 
         try {
@@ -232,6 +243,17 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         @Override
         public void onTrackStatusChanged(FUAIProcessorEnum type, int status) {
             Log.e(TAG, "onTrackStatusChanged: 人脸数: " + status);
+            runOnUiThread(() -> {
+                if (mTvTraceFace != null) {
+                    mTvTraceFace.setVisibility(status > 0 ? View.GONE : View.VISIBLE);
+                    if (type == FUAIProcessorEnum.FACE_PROCESSOR) {
+                        mTvTraceFace.setText(R.string.toast_not_detect_face);
+                    }else if (type == FUAIProcessorEnum.HUMAN_PROCESSOR) {
+                        mTvTraceFace.setText(R.string.toast_not_detect_body);
+                    }
+                }
+            });
+
         }
 
         @Override
@@ -255,6 +277,26 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
     private void setVideoCallback() {
 
         NERtcEx.getInstance().setVideoCallback(new NERtcVideoCallback() {
+
+            private void cheekFaceNum() {
+                //根据有无人脸 + 设备性能 判断开启的磨皮类型
+                float faceProcessorGetConfidenceScore = FUAIKit.getInstance().getFaceProcessorGetConfidenceScore(0);
+                if (faceProcessorGetConfidenceScore >= 0.95) {
+                    //高端手机并且检测到人脸开启均匀磨皮，人脸点位质
+                    if (FURenderKit.getInstance().getFaceBeauty() != null && FURenderKit.getInstance().getFaceBeauty().getBlurType() != FaceBeautyBlurTypeEnum.EquallySkin) {
+                        FURenderKit.getInstance().getFaceBeauty().setBlurType(FaceBeautyBlurTypeEnum.EquallySkin);
+                        FURenderKit.getInstance().getFaceBeauty().setEnableBlurUseMask(true);
+                    }
+                } else {
+                    if (FURenderKit.getInstance().getFaceBeauty() != null && FURenderKit.getInstance().getFaceBeauty().getBlurType() != FaceBeautyBlurTypeEnum.FineSkin) {
+                        FURenderKit.getInstance().getFaceBeauty().setBlurType(FaceBeautyBlurTypeEnum.FineSkin);
+                        FURenderKit.getInstance().getFaceBeauty().setEnableBlurUseMask(false);
+                    }
+                }
+            }
+
+            private int oldOrientation = 0;
+
             @Override
             public boolean onVideoCallback(NERtcVideoFrame neRtcVideoFrame) {
                 if (isFirstInit) {
@@ -262,9 +304,21 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
                     mHandler = new Handler(Looper.myLooper());
                     mFURenderer.prepareRenderer(mFURendererListener);
                     initCsvUtil(MeetingActivity.this);
+                    oldOrientation = neRtcVideoFrame.rotation;
                     return false;
                 }
-                Log.e(TAG, "onVideoCallback: elg context " + EGL14.eglGetCurrentContext());
+
+                if (FUConfig.DEVICE_LEVEL > FuDeviceUtils.DEVICE_LEVEL_MID) {
+                    //高性能设备
+                    cheekFaceNum();
+                }
+                Log.i(TAG, "onVideoCallback: neRtcVideoFrame " + getNERtcVideoFrameString(neRtcVideoFrame));
+                if (oldOrientation != neRtcVideoFrame.rotation) {
+                    FURenderKit.getInstance().clearCacheResource();
+                    mSkipFrame = 5;
+                }
+                mFURenderer.setInputOrientation(neRtcVideoFrame.rotation);
+
                 long start = System.nanoTime();
                 int texId = mFURenderer.onDrawFrameSingleInput(neRtcVideoFrame.textureId, neRtcVideoFrame.width, neRtcVideoFrame.height);
                 long renderTime = System.nanoTime() - start;
@@ -272,13 +326,16 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
                 if (mSkipFrame -- > 0) {
                     return false;
                 }
-                if (neRtcVideoFrame.format == NERtcVideoFrame.Format.TEXTURE_OES) {
-                    neRtcVideoFrame.format = NERtcVideoFrame.Format.TEXTURE_RGB;
-                }
+                neRtcVideoFrame.format = NERtcVideoFrame.Format.TEXTURE_RGB;
                 neRtcVideoFrame.textureId = texId;
                 return true;
             }
         }, false);
+    }
+
+    private String getNERtcVideoFrameString(NERtcVideoFrame neRtcVideoFrame) {
+        return String.format(Locale.getDefault(), "width: %d, height: %d, rotation: %d, format: %s, data: %d", neRtcVideoFrame.width,
+                neRtcVideoFrame.height, neRtcVideoFrame.rotation, neRtcVideoFrame.format.toString(), neRtcVideoFrame.data.length);
     }
 
     /**
@@ -330,7 +387,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         });
         try {
             mHandler = null;
-            countDownLatch.await();
+            countDownLatch.await(500, TimeUnit.MICROSECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -365,6 +422,11 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
     }
 
     @Override
+    public void onUserJoined(long l, NERtcUserJoinExtraInfo neRtcUserJoinExtraInfo) {
+
+    }
+
+    @Override
     public void onUserLeave(long uid, int reason) {
         Log.i(TAG, "onUserLeave uid: " + uid + " reason: " + reason);
         // 退出的不是当前订阅的对象，则不作处理
@@ -379,6 +441,11 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
         waitHintTv.setVisibility(View.VISIBLE);
         // 不展示远端
         remoteUserVv.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onUserLeave(long l, int i, NERtcUserLeaveExtraInfo neRtcUserLeaveExtraInfo) {
+
     }
 
     @Override
@@ -494,19 +561,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
                 changeVideoEnable();
                 break;
             case R.id.img_camera_flip:
-                if (NERtcEx.getInstance().switchCamera() == 0) {
-                    if (mFURenderer == null) {
-                        return;
-                    }
-                    mSkipFrame = 5;
-                    mCameraFacing = Camera.CameraInfo.CAMERA_FACING_FRONT - mCameraFacing;
-                    mFURenderer.setCameraFacing(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? CameraFacingEnum.CAMERA_FRONT : CameraFacingEnum.CAMERA_BACK);
-                    mFURenderer.setInputOrientation(CameraUtils.getCameraOrientation(mCameraFacing));
-
-                    mFURenderer.setInputTextureMatrix(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? FUTransformMatrixEnum.CCROT0_FLIPVERTICAL : FUTransformMatrixEnum.CCROT0);
-                    mFURenderer.setInputBufferMatrix(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? FUTransformMatrixEnum.CCROT0_FLIPVERTICAL : FUTransformMatrixEnum.CCROT0);
-                    mFURenderer.setOutputMatrix(mCameraFacing == Camera.CameraInfo.CAMERA_FACING_FRONT ? FUTransformMatrixEnum.CCROT0 : FUTransformMatrixEnum.CCROT0_FLIPVERTICAL);
-                }
+                NERtcEx.getInstance().switchCamera();
                 break;
             default:
                 break;
