@@ -2,11 +2,8 @@ package com.faceunity.nama.control;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.Nullable;
-
 import androidx.recyclerview.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;

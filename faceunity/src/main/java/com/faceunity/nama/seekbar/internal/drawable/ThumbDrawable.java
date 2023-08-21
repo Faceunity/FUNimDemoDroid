@@ -7,7 +7,9 @@ import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.os.SystemClock;
 import androidx.annotation.NonNull;
+
 import com.faceunity.nama.seekbar.internal.Marker;
+
 
 /**
  * <h1>HACK</h1>

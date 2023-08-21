@@ -1,7 +1,6 @@
 package com.faceunity.nama.data;
 
 
-
 import androidx.annotation.NonNull;
 
 import com.faceunity.core.controller.facebeauty.FaceBeautyParam;
@@ -21,7 +20,7 @@ import java.util.HashMap;
  * DESC：美颜业务工厂
  * Created on 2021/3/1
  */
-public class FaceBeautyDataFactory extends AbstractFaceBeautyDataFactory {
+public class FaceBeautyAndFilterDataFactory extends AbstractFaceBeautyDataFactory {
 
 
     interface FaceBeautySetParamInterface {
@@ -200,9 +199,11 @@ public class FaceBeautyDataFactory extends AbstractFaceBeautyDataFactory {
         put(FaceBeautyParam.REMOVE_POUCH_INTENSITY, defaultFaceBeauty::setRemovePouchIntensity);
         put(FaceBeautyParam.REMOVE_NASOLABIAL_FOLDS_INTENSITY, defaultFaceBeauty::setRemoveLawPatternIntensity);
         /*美型*/
-        put(FaceBeautyParam.FACE_SHAPE_INTENSITY, defaultFaceBeauty::setSharpenIntensity);
+        put(FaceBeautyParam.FACE_SHAPE_INTENSITY, defaultFaceBeauty::setFaceShapeIntensity);
         put(FaceBeautyParam.CHEEK_THINNING_INTENSITY, defaultFaceBeauty::setCheekThinningIntensity);
         put(FaceBeautyParam.CHEEK_V_INTENSITY, defaultFaceBeauty::setCheekVIntensity);
+        put(FaceBeautyParam.CHEEK_LONG_INTENSITY, defaultFaceBeauty::setCheekLongIntensity);
+        put(FaceBeautyParam.CHEEK_CIRCLE_INTENSITY, defaultFaceBeauty::setCheekCircleIntensity);
         put(FaceBeautyParam.CHEEK_NARROW_INTENSITY, defaultFaceBeauty::setCheekNarrowIntensity);
         put(FaceBeautyParam.CHEEK_SHORT_INTENSITY, defaultFaceBeauty::setCheekShortIntensity);
         put(FaceBeautyParam.CHEEK_SMALL_INTENSITY, defaultFaceBeauty::setCheekSmallIntensity);
@@ -210,6 +211,13 @@ public class FaceBeautyDataFactory extends AbstractFaceBeautyDataFactory {
         put(FaceBeautyParam.INTENSITY_LOW_JAW_INTENSITY, defaultFaceBeauty::setLowerJawIntensity);
         put(FaceBeautyParam.EYE_ENLARGING_INTENSITY, defaultFaceBeauty::setEyeEnlargingIntensity);
         put(FaceBeautyParam.EYE_CIRCLE_INTENSITY, defaultFaceBeauty::setEyeCircleIntensity);
+        put(FaceBeautyParam.BROW_HEIGHT_INTENSITY, defaultFaceBeauty::setBrowHeightIntensity);
+        put(FaceBeautyParam.BROW_SPACE_INTENSITY, defaultFaceBeauty::setBrowSpaceIntensity);
+        put(FaceBeautyParam.INTENSITY_EYE_LID, defaultFaceBeauty::setEyeLidIntensity);
+        put(FaceBeautyParam.INTENSITY_EYE_HEIGHT, defaultFaceBeauty::setEyeHeightIntensity);
+        put(FaceBeautyParam.INTENSITY_BROW_THICK, defaultFaceBeauty::setBrowThickIntensity);
+        put(FaceBeautyParam.INTENSITY_LIP_THICK, defaultFaceBeauty::setLipThickIntensity);
+        put(FaceBeautyParam.FACE_THREED, defaultFaceBeauty::setFaceThreeIntensity);
         put(FaceBeautyParam.CHIN_INTENSITY, defaultFaceBeauty::setChinIntensity);
         put(FaceBeautyParam.FOREHEAD_INTENSITY, defaultFaceBeauty::setForHeadIntensity);
         put(FaceBeautyParam.NOSE_INTENSITY, defaultFaceBeauty::setNoseIntensity);
@@ -220,8 +228,6 @@ public class FaceBeautyDataFactory extends AbstractFaceBeautyDataFactory {
         put(FaceBeautyParam.LONG_NOSE_INTENSITY, defaultFaceBeauty::setLongNoseIntensity);
         put(FaceBeautyParam.PHILTRUM_INTENSITY, defaultFaceBeauty::setPhiltrumIntensity);
         put(FaceBeautyParam.SMILE_INTENSITY, defaultFaceBeauty::setSmileIntensity);
-        put(FaceBeautyParam.BROW_HEIGHT_INTENSITY, defaultFaceBeauty::setBrowHeightIntensity);
-        put(FaceBeautyParam.BROW_SPACE_INTENSITY, defaultFaceBeauty::setBrowSpaceIntensity);
     }};
 
     /*模型映射获取模型值*/
@@ -236,9 +242,11 @@ public class FaceBeautyDataFactory extends AbstractFaceBeautyDataFactory {
             put(FaceBeautyParam.REMOVE_POUCH_INTENSITY, defaultFaceBeauty::getRemovePouchIntensity);
             put(FaceBeautyParam.REMOVE_NASOLABIAL_FOLDS_INTENSITY, defaultFaceBeauty::getRemoveLawPatternIntensity);
             /*美型*/
-            put(FaceBeautyParam.FACE_SHAPE_INTENSITY, defaultFaceBeauty::getSharpenIntensity);
+            put(FaceBeautyParam.FACE_SHAPE_INTENSITY, defaultFaceBeauty::getFaceShapeIntensity);
             put(FaceBeautyParam.CHEEK_THINNING_INTENSITY, defaultFaceBeauty::getCheekThinningIntensity);
             put(FaceBeautyParam.CHEEK_V_INTENSITY, defaultFaceBeauty::getCheekVIntensity);
+            put(FaceBeautyParam.CHEEK_LONG_INTENSITY, defaultFaceBeauty::getCheekLongIntensity);
+            put(FaceBeautyParam.CHEEK_CIRCLE_INTENSITY, defaultFaceBeauty::getCheekCircleIntensity);
             put(FaceBeautyParam.CHEEK_NARROW_INTENSITY, defaultFaceBeauty::getCheekNarrowIntensity);
             put(FaceBeautyParam.CHEEK_SHORT_INTENSITY, defaultFaceBeauty::getCheekShortIntensity);
             put(FaceBeautyParam.CHEEK_SMALL_INTENSITY, defaultFaceBeauty::getCheekSmallIntensity);
@@ -246,6 +254,13 @@ public class FaceBeautyDataFactory extends AbstractFaceBeautyDataFactory {
             put(FaceBeautyParam.INTENSITY_LOW_JAW_INTENSITY, defaultFaceBeauty::getLowerJawIntensity);
             put(FaceBeautyParam.EYE_ENLARGING_INTENSITY, defaultFaceBeauty::getEyeEnlargingIntensity);
             put(FaceBeautyParam.EYE_CIRCLE_INTENSITY, defaultFaceBeauty::getEyeCircleIntensity);
+            put(FaceBeautyParam.BROW_HEIGHT_INTENSITY, defaultFaceBeauty::getBrowHeightIntensity);
+            put(FaceBeautyParam.BROW_SPACE_INTENSITY, defaultFaceBeauty::getBrowSpaceIntensity);
+            put(FaceBeautyParam.INTENSITY_EYE_LID, defaultFaceBeauty::getEyeLidIntensity);
+            put(FaceBeautyParam.INTENSITY_EYE_HEIGHT, defaultFaceBeauty::getEyeHeightIntensity);
+            put(FaceBeautyParam.INTENSITY_BROW_THICK, defaultFaceBeauty::getBrowThickIntensity);
+            put(FaceBeautyParam.INTENSITY_LIP_THICK, defaultFaceBeauty::getLipThickIntensity);
+            put(FaceBeautyParam.FACE_THREED, defaultFaceBeauty::getFaceThreeIntensity);
             put(FaceBeautyParam.CHIN_INTENSITY, defaultFaceBeauty::getChinIntensity);
             put(FaceBeautyParam.FOREHEAD_INTENSITY, defaultFaceBeauty::getForHeadIntensity);
             put(FaceBeautyParam.NOSE_INTENSITY, defaultFaceBeauty::getNoseIntensity);
@@ -256,8 +271,6 @@ public class FaceBeautyDataFactory extends AbstractFaceBeautyDataFactory {
             put(FaceBeautyParam.LONG_NOSE_INTENSITY, defaultFaceBeauty::getLongNoseIntensity);
             put(FaceBeautyParam.PHILTRUM_INTENSITY, defaultFaceBeauty::getPhiltrumIntensity);
             put(FaceBeautyParam.SMILE_INTENSITY, defaultFaceBeauty::getSmileIntensity);
-            put(FaceBeautyParam.BROW_HEIGHT_INTENSITY, defaultFaceBeauty::getBrowHeightIntensity);
-            put(FaceBeautyParam.BROW_SPACE_INTENSITY, defaultFaceBeauty::getBrowSpaceIntensity);
         }
     };
 

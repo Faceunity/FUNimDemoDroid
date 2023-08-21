@@ -140,13 +140,7 @@ public class CameraRenderer {
             long start = System.nanoTime();
             FURenderOutputData outputData;
             byte[] inputBuffer = getCurrentBuffer();
-            if (!mFaceUnityDataFactory.isMakeupSelected()) {
-                outputData = mFURenderer.onDrawFrameInputWithReturn(inputBuffer, mCameraTextureId, mCameraWidth, mCameraHeight);
-                Log.e(TAG, "onPreviewFrame: dual " + EGL14.eglGetCurrentContext());
-            } else {
-                outputData = mFURenderer.onDrawFrameInputWithReturn(inputBuffer, 0, mCameraWidth, mCameraHeight);
-                Log.e(TAG, "onPreviewFrame: single " + EGL14.eglGetCurrentContext());
-            }
+            outputData = mFURenderer.onDrawFrameInputWithReturn(inputBuffer, mCameraTextureId, mCameraWidth, mCameraHeight);
             long time = System.nanoTime() - start;
             mCSVUtils.writeCsv(null, time);
             if (mSkippedFrames > 0) {
