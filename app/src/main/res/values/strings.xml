@@ -1,6 +1,6 @@
 <resources>
     <!-- 替换为你自己的AppKey -->
-    <string name="app_key">9ee2101a195b4044c4002d1972156396</string>
+    <string name="app_key"></string>
     <string name="app_name">云信RTC</string>
     <string name="main_hint_room_id">请输入房间号</string>
     <string name="join_channel">加入频道</string>

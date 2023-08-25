@@ -315,6 +315,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
                 Log.i(TAG, "onVideoCallback: neRtcVideoFrame " + getNERtcVideoFrameString(neRtcVideoFrame));
                 if (oldOrientation != neRtcVideoFrame.rotation) {
                     FURenderKit.getInstance().clearCacheResource();
+                    oldOrientation = neRtcVideoFrame.rotation;
                     mSkipFrame = 5;
                 }
                 mFURenderer.setInputOrientation(neRtcVideoFrame.rotation);
