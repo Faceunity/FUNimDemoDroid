@@ -50,4 +50,7 @@ public abstract class AbstractBodyBeautyDataFactory {
      * @param enable Boolean
      */
     public abstract void enableBodyBeauty(boolean enable);
+
+    public abstract boolean isBodyBeautyEnabled();
+
 }

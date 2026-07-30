@@ -308,7 +308,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
                     return false;
                 }
 
-                if (FUConfig.DEVICE_LEVEL > FuDeviceUtils.DEVICE_LEVEL_MID) {
+                if (FUConfig.DEVICE_LEVEL > FuDeviceUtils.DEVICE_LEVEL_TWO) {
                     //高性能设备
                     cheekFaceNum();
                 }
