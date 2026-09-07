@@ -6,8 +6,8 @@ android {
     defaultConfig {
         minSdkVersion 18
         targetSdkVersion 28
-        versionCode 9010
-        versionName "9.0.1"
+        versionCode 9120
+        versionName "9.1.2"
     }
     buildTypes {
         release {
@@ -42,7 +42,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    api 'com.faceunity:core:9.0.1'
-    implementation 'com.faceunity:model:9.0.1'
+    api 'com.faceunity:core:9.1.2'
+    implementation 'com.faceunity:model:9.1.2'
     implementation 'com.google.code.gson:gson:2.8.9'
 }

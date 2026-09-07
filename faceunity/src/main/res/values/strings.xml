@@ -113,4 +113,10 @@
     <string name="beauty_skin_seg_type_overall">Overall</string>
     <string name="beauty_skin_seg_type_skin">Skin</string>
     <string name="beauty_skin_seg_type_tips">Skin Tone</string>
+
+    <string name="beauty_box_small_head">Small Head</string>
+    <string name="beauty_box_intensity_nose_alar">Nose Alar</string>
+    <string name="beauty_box_intensity_eye_outter">Eye Outter</string>
+    <string name="beautify_swan">Swan Neck</string>
+
 </resources>

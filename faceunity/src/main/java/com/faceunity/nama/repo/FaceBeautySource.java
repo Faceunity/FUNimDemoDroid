@@ -248,6 +248,16 @@ public class FaceBeautySource {
                         FUConfig.DEVICE_LEVEL >= FuDeviceUtils.DEVICE_LEVEL_ONE
                 )
         );
+
+        // 小头
+        params.add(
+                new FaceBeautyBean(
+                        FaceBeautyParam.INTENSITY_SMALL_HEAD_INTENSITY, R.string.beauty_box_small_head,
+                        R.drawable.icon_beauty_shape_small_head_close_selector, R.drawable.icon_beauty_shape_small_head_open_selector,
+                        FUConfig.DEVICE_LEVEL >= FuDeviceUtils.DEVICE_LEVEL_ONE
+                )
+        );
+
         //瘦颧骨
         params.add(
                 new FaceBeautyBean(
@@ -265,6 +275,15 @@ public class FaceBeautySource {
                         FUConfig.DEVICE_LEVEL >= FuDeviceUtils.DEVICE_LEVEL_ONE
                 )
         );
+
+        //        // 面部提拉
+//        params.add(
+//                new FaceBeautyBean(
+//                        FaceBeautyParam.INTENSITY_FACE_LIFT_INTENSITY, R.string.beauty_box_face_lift,
+//                        R.drawable.icon_beauty_shape_face_lift_close_selector, R.drawable.icon_beauty_shape_face_lift_open_selector,
+//                        DemoConfig.DEVICE_LEVEL >= FuDeviceUtils.DEVICE_LEVEL_ONE
+//                )
+//        );
 
         //大眼
         params.add(
@@ -318,6 +337,15 @@ public class FaceBeautySource {
                 )
         );
 
+        // 鼻翼
+        params.add(
+                new FaceBeautyBean(
+                        FaceBeautyParam.NOSE_ALAR_INTENSITY, R.string.beauty_box_intensity_nose_alar,
+                        R.drawable.icon_beauty_shape_nose_alar_close_selector, R.drawable.icon_beauty_shape_nose_alar_open_selector,
+                        FUConfig.DEVICE_LEVEL >= FuDeviceUtils.DEVICE_LEVEL_ONE
+                )
+        );
+
         //嘴型
         params.add(
                 new FaceBeautyBean(
@@ -326,6 +354,15 @@ public class FaceBeautySource {
                         FUConfig.DEVICE_LEVEL >= FuDeviceUtils.DEVICE_LEVEL_ONE
                 )
         );
+
+        //        // 嘴巴宽度
+//        params.add(
+//                new FaceBeautyBean(
+//                        FaceBeautyParam.MOUTH_WIDTH_INTENSITY, R.string.beauty_box_intensity_mouth_width,
+//                        R.drawable.icon_beauty_shape_mouth_width_close_selector, R.drawable.icon_beauty_shape_mouth_width_open_selector,
+//                        DemoConfig.DEVICE_LEVEL >= FuDeviceUtils.DEVICE_LEVEL_ONE
+//                )
+//        );
 
         //嘴唇厚度
         params.add(
@@ -348,6 +385,15 @@ public class FaceBeautySource {
                 new FaceBeautyBean(
                         FaceBeautyParam.CANTHUS_INTENSITY, R.string.beauty_micro_canthus,
                         R.drawable.icon_beauty_shape_open_eyes_close_selector, R.drawable.icon_beauty_shape_open_eyes_open_selector,
+                        FUConfig.DEVICE_LEVEL >= FuDeviceUtils.DEVICE_LEVEL_ONE
+                )
+        );
+
+        // 外眼角
+        params.add(
+                new FaceBeautyBean(
+                        FaceBeautyParam.EYE_OUTTER_INTENSITY, R.string.beauty_box_intensity_eye_outter,
+                        R.drawable.icon_beauty_shape_eye_outter_close_selector, R.drawable.icon_beauty_shape_eye_outter_open_selector,
                         FUConfig.DEVICE_LEVEL >= FuDeviceUtils.DEVICE_LEVEL_ONE
                 )
         );
@@ -505,6 +551,11 @@ public class FaceBeautySource {
         params.put(FaceBeautyParam.INTENSITY_EYE_HEIGHT, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
         params.put(FaceBeautyParam.INTENSITY_BROW_THICK, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
         params.put(FaceBeautyParam.INTENSITY_LIP_THICK, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
+        params.put(FaceBeautyParam.INTENSITY_FACE_LIFT_INTENSITY, new ModelAttributeData(0.0, 0.0, 0.0, 1.0));
+        params.put(FaceBeautyParam.INTENSITY_SMALL_HEAD_INTENSITY, new ModelAttributeData(0.0, 0.0, 0.0, 1.0));
+        params.put(FaceBeautyParam.EYE_OUTTER_INTENSITY, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
+        params.put(FaceBeautyParam.MOUTH_WIDTH_INTENSITY, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
+        params.put(FaceBeautyParam.NOSE_ALAR_INTENSITY, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
         return params;
     }
 
@@ -572,6 +623,11 @@ public class FaceBeautySource {
         params.put(FaceBeautyParam.INTENSITY_EYE_HEIGHT, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
         params.put(FaceBeautyParam.INTENSITY_BROW_THICK, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
         params.put(FaceBeautyParam.INTENSITY_LIP_THICK, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
+        params.put(FaceBeautyParam.INTENSITY_FACE_LIFT_INTENSITY, new ModelAttributeData(0.0, 0.0, 0.0, 1.0));
+        params.put(FaceBeautyParam.INTENSITY_SMALL_HEAD_INTENSITY, new ModelAttributeData(0.0, 0.0, 0.0, 1.0));
+        params.put(FaceBeautyParam.EYE_OUTTER_INTENSITY, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
+        params.put(FaceBeautyParam.MOUTH_WIDTH_INTENSITY, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
+        params.put(FaceBeautyParam.NOSE_ALAR_INTENSITY, new ModelAttributeData(0.5, 0.5, 0.0, 1.0));
         return params;
     }
 

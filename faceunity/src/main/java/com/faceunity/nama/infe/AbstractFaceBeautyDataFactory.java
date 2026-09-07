@@ -98,6 +98,17 @@ public abstract class AbstractFaceBeautyDataFactory {
      */
     public abstract void updateParamIntensity(String key, double value);
 
-    public abstract boolean isFaceBeautyEnabled();
+
+    /**
+     * 获取关联的radioButton选择项
+     */
+    public abstract int getParamRelevanceSelectedType(String key);
+
+    /**
+     * 更新关联的radioButton选择项
+     */
+
+    public abstract void updateParamRelevanceType(String key, int type);
+
 
 }

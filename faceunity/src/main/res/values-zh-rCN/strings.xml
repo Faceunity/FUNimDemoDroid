@@ -113,4 +113,10 @@
     <string name="beauty_skin_seg_type_overall">全局</string>
     <string name="beauty_skin_seg_type_skin">仅皮肤</string>
     <string name="beauty_skin_seg_type_tips">皮肤美白</string>
+
+    <string name="beauty_box_small_head">小头</string>
+    <string name="beauty_box_intensity_nose_alar">鼻翼</string>
+    <string name="beauty_box_intensity_eye_outter">外眼角</string>
+    <string name="beautify_swan">天鹅颈</string>
+
 </resources>
