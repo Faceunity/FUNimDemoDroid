@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initViews();
         requestPermissionsIfNeeded();
-        FUConfig.DEVICE_LEVEL = FuDeviceUtils.judgeDeviceLevelGPU();
+        FUConfig.DEVICE_LEVEL = FuDeviceUtils.judgeDeviceLevel(true);
     }
 
     private void requestPermissionsIfNeeded() {

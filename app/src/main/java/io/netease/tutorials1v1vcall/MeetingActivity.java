@@ -230,6 +230,29 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
 
         if (isFUOn) {
             setVideoCallback();
+            //高性能设备
+            if (FUConfig.DEVICE_LEVEL > FuDeviceUtils.DEVICE_LEVEL_ONE) {
+//                cheekFaceNum();
+            }
+        }
+    }
+    /**
+     * 检查当前人脸数量
+     */
+    private void cheekFaceNum() {
+        //根据有无人脸 + 设备性能 判断开启的磨皮类型
+        float faceProcessorGetConfidenceScore = FUAIKit.getInstance().getFaceProcessorGetConfidenceScore(0);
+        if (faceProcessorGetConfidenceScore >= 0.95) {
+            //高端手机并且检测到人脸开启均匀磨皮，人脸点位质
+            if (FURenderKit.getInstance() != null && FURenderKit.getInstance().getFaceBeauty() != null && FURenderKit.getInstance().getFaceBeauty().getBlurType() != FaceBeautyBlurTypeEnum.EquallySkin) {
+                FURenderKit.getInstance().getFaceBeauty().setBlurType(FaceBeautyBlurTypeEnum.EquallySkin);
+                FURenderKit.getInstance().getFaceBeauty().setEnableBlurUseMask(true);
+            }
+        } else {
+            if (FURenderKit.getInstance() != null && FURenderKit.getInstance().getFaceBeauty() != null && FURenderKit.getInstance().getFaceBeauty().getBlurType() != FaceBeautyBlurTypeEnum.FineSkin) {
+                FURenderKit.getInstance().getFaceBeauty().setBlurType(FaceBeautyBlurTypeEnum.FineSkin);
+                FURenderKit.getInstance().getFaceBeauty().setEnableBlurUseMask(false);
+            }
         }
     }
 
@@ -278,22 +301,22 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
 
         NERtcEx.getInstance().setVideoCallback(new NERtcVideoCallback() {
 
-            private void cheekFaceNum() {
-                //根据有无人脸 + 设备性能 判断开启的磨皮类型
-                float faceProcessorGetConfidenceScore = FUAIKit.getInstance().getFaceProcessorGetConfidenceScore(0);
-                if (faceProcessorGetConfidenceScore >= 0.95) {
-                    //高端手机并且检测到人脸开启均匀磨皮，人脸点位质
-                    if (FURenderKit.getInstance().getFaceBeauty() != null && FURenderKit.getInstance().getFaceBeauty().getBlurType() != FaceBeautyBlurTypeEnum.EquallySkin) {
-                        FURenderKit.getInstance().getFaceBeauty().setBlurType(FaceBeautyBlurTypeEnum.EquallySkin);
-                        FURenderKit.getInstance().getFaceBeauty().setEnableBlurUseMask(true);
-                    }
-                } else {
-                    if (FURenderKit.getInstance().getFaceBeauty() != null && FURenderKit.getInstance().getFaceBeauty().getBlurType() != FaceBeautyBlurTypeEnum.FineSkin) {
-                        FURenderKit.getInstance().getFaceBeauty().setBlurType(FaceBeautyBlurTypeEnum.FineSkin);
-                        FURenderKit.getInstance().getFaceBeauty().setEnableBlurUseMask(false);
-                    }
-                }
-            }
+//            private void cheekFaceNum() {
+//                //根据有无人脸 + 设备性能 判断开启的磨皮类型
+//                float faceProcessorGetConfidenceScore = FUAIKit.getInstance().getFaceProcessorGetConfidenceScore(0);
+//                if (faceProcessorGetConfidenceScore >= 0.95) {
+//                    //高端手机并且检测到人脸开启均匀磨皮，人脸点位质
+//                    if (FURenderKit.getInstance().getFaceBeauty() != null && FURenderKit.getInstance().getFaceBeauty().getBlurType() != FaceBeautyBlurTypeEnum.EquallySkin) {
+//                        FURenderKit.getInstance().getFaceBeauty().setBlurType(FaceBeautyBlurTypeEnum.EquallySkin);
+//                        FURenderKit.getInstance().getFaceBeauty().setEnableBlurUseMask(true);
+//                    }
+//                } else {
+//                    if (FURenderKit.getInstance().getFaceBeauty() != null && FURenderKit.getInstance().getFaceBeauty().getBlurType() != FaceBeautyBlurTypeEnum.FineSkin) {
+//                        FURenderKit.getInstance().getFaceBeauty().setBlurType(FaceBeautyBlurTypeEnum.FineSkin);
+//                        FURenderKit.getInstance().getFaceBeauty().setEnableBlurUseMask(false);
+//                    }
+//                }
+//            }
 
             private int oldOrientation = 0;
 
@@ -308,7 +331,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
                     return false;
                 }
 
-                if (FUConfig.DEVICE_LEVEL > FuDeviceUtils.DEVICE_LEVEL_MID) {
+                if (FUConfig.DEVICE_LEVEL > FuDeviceUtils.DEVICE_LEVEL_TWO) {
                     //高性能设备
                     cheekFaceNum();
                 }
@@ -424,7 +447,7 @@ public class MeetingActivity extends AppCompatActivity implements NERtcCallback,
 
     @Override
     public void onUserJoined(long l, NERtcUserJoinExtraInfo neRtcUserJoinExtraInfo) {
-
+        Log.i(TAG, "onUserJoined: ");
     }
 
     @Override
