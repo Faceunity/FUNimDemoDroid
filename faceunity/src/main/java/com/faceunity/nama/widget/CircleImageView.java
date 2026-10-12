@@ -53,7 +53,7 @@ import com.faceunity.nama.R;
  * Current version is 3.1.0
  */
 @SuppressWarnings("UnusedDeclaration")
-public class CircleImageView extends AppCompatImageView {
+public class CircleImageView extends ImageView {
 
     private static final ScaleType SCALE_TYPE = ScaleType.CENTER_CROP;
 

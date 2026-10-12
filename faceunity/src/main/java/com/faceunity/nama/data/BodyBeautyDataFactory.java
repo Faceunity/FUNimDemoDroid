@@ -110,14 +110,6 @@ public class BodyBeautyDataFactory extends AbstractBodyBeautyDataFactory {
         }
     }
 
-    @Override
-    public boolean isBodyBeautyEnabled() {
-        if (mFURenderKit.getBodyBeauty() != null) {
-            return mFURenderKit.getBodyBeauty().getEnable();
-        }
-        return true;
-    }
-
     /*模型映射设置模型值*/
     private final HashMap<String, BodyBeautySetParamInterface> bodyBeautySetMapping = new HashMap<String, BodyBeautySetParamInterface>() {
         {
